@@ -1,25 +1,22 @@
 package farm;
 
-import javafx.event.ActionEvent;
-import javafx.fxml.Initializable;
-import java.net.URL;
-import java.util.ResourceBundle;
+import javafx.fxml.FXML;
+import javafx.scene.layout.BorderPane;
 
-public class MainController implements Initializable {
+public class MainController {
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // Code d'initialisation ici
-        System.out.println("Interface initialisée !");
+    @FXML
+    private BorderPane root;
+
+    @FXML
+    private void handleSave() {
+        System.out.println("Sauvegarde...");
+        // On implémentera la logique de sauvegarde plus tard
     }
 
-    public void handleStart(ActionEvent event) {
-        System.out.println("Bouton Démarrer cliqué");
-        // Ajoutez votre logique ici
-    }
-
-    public void handleSettings(ActionEvent event) {
-        System.out.println("Bouton Paramètres cliqué");
-        // Ajoutez votre logique ici
+    @FXML
+    private void handleLoad() {
+        System.out.println("Chargement...");
+        // On implémentera la logique de chargement plus tard
     }
 }
