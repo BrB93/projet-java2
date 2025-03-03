@@ -54,5 +54,7 @@ public class Farm {
         }
     }
 
-    // Getters / setters ...
+    public List<Crop> getCrops() {
+        return crops; // où 'crops' est votre collection de cultures
+    }
 }

@@ -22,6 +22,7 @@ public class MainController implements Initializable {
 
     @FXML
     public void initialize() {
+
         // Initialiser la ferme avec 500 pièces et 5 parcelles par exemple
         farm = new Farm(500, 5);
 

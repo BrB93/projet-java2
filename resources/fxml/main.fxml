@@ -23,4 +23,7 @@
             <Button text="Paramètres" onAction="#handleSettings"/>
         </VBox>
     </center>
+    <right>
+        <fx:include source="store.fxml" fx:id="storePane"/>
+    </right>
 </BorderPane>
