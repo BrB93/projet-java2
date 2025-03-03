@@ -2,14 +2,15 @@ package farm;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
 
-
-
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -21,20 +22,41 @@ public class MainController implements Initializable {
     private Farm farm;
 
     @FXML
-    public void initialize() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        System.out.println("Interface initialisée !");
 
-        // Initialiser la ferme avec 500 pièces et 5 parcelles par exemple
         farm = new Farm(500, 5);
 
-        // Créer un Timeline qui se répète indéfiniment
-        Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(1), event -> {
-                    farm.updateAll();
-                    // plus tard : rafraîchir l’interface
-                })
-        );
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+        // Charger store.fxml
+        try {
+            FXMLLoader loaderStore = new FXMLLoader(getClass().getResource("/fxml/store.fxml"));
+            Node storeNode = loaderStore.load();
+            StoreController storeCtrl = loaderStore.getController();
+            storeCtrl.setFarm(farm);
+            root.setRight(storeNode);
+
+            // Charger dashboard.fxml
+            FXMLLoader loaderDashboard = new FXMLLoader(getClass().getResource("/fxml/dashboard.fxml"));
+            Node dashboardNode = loaderDashboard.load();
+            DashboardController dashCtrl = loaderDashboard.getController();
+            dashCtrl.setFarm(farm);
+            root.setBottom(dashboardNode);
+
+            // Timeline
+            Timeline timeline = new Timeline(
+                    new KeyFrame(Duration.seconds(1), event -> {
+                        farm.updateAll();
+                        // rafraîchir le dashboard
+                        dashCtrl.refresh();
+                    })
+            );
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -47,12 +69,6 @@ public class MainController implements Initializable {
     private void handleLoad() {
         System.out.println("Chargement...");
         // On implémentera la logique de chargement plus tard
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // Code d'initialisation ici
-        System.out.println("Interface initialisée !");
     }
 
     @FXML

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="farm.DashboardController"
+      spacing="10" style="-fx-padding: 10;">
+    <Label text="Tableau de bord Financier" />
+    <Label fx:id="moneyLabel" text="Argent : 0" />
+</VBox>

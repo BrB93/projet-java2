@@ -16,6 +16,18 @@ public class Farm {
         this.animals = new ArrayList<>();
     }
 
+    public double getMoney() {
+        return money;
+    }
+
+    public void setMoney(double money) {
+        this.money = money;
+    }
+
+    public void addMoney(double amount) {
+        this.money += amount;
+    }
+
     public void buyCrop(Crop crop) {
         if (money >= crop.getBuyPrice() && crops.size() < maxPlots) {
             money -= crop.getBuyPrice();
@@ -56,5 +68,17 @@ public class Farm {
 
     public List<Crop> getCrops() {
         return crops; // où 'crops' est votre collection de cultures
+    }
+
+    public List<Animal> getAnimals() {
+        return animals;
+    }
+
+    public int getMaxPlots() {
+        return maxPlots;
+    }
+
+    public int getAvailablePlots() {
+        return maxPlots - crops.size();
     }
 }
