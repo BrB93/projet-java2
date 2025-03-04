@@ -1,96 +1,91 @@
 package farm;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class StoreController {
-    private Farm farm;
+    private static final Logger LOGGER = Logger.getLogger(StoreController.class.getName());
 
-    @FXML
-    private VBox storeContainer;
+    private Farm farm;
 
     @FXML
     private Label messageLabel;
 
+    @FXML
+    private void initialize() {
+        LOGGER.info("Initialisation du StoreController");
+    }
+
     public void setFarm(Farm farm) {
         this.farm = farm;
-        initializeStore();
+        LOGGER.info("Farm définie dans StoreController");
     }
 
-    private void initializeStore() {
-        // Sera implémenté plus tard avec les boutons d'achat
-    }
+    private void buySeed(String type, double price) {
+        if (farm == null) {
+            LOGGER.severe("Tentative d'achat de graines alors que farm est null");
+            messageLabel.setText("Erreur: Le jeu n'est pas démarré");
+            return;
+        }
 
-    @FXML
-    private void buySeed(String cropType) {
-        double price = getCropPrice(cropType);
         if (farm.spendMoney(price)) {
-            // Ajouter une graine à l'inventaire
-            messageLabel.setText("Graine de " + cropType + " achetée !");
+            // Ajouter directement à l'inventaire
+            farm.getInventory().put(type, farm.getInventory().getOrDefault(type, 0) + 1);
+            messageLabel.setText("Achat de " + type + " réussi !");
+            LOGGER.info("Achat de " + type + " réussi");
         } else {
             messageLabel.setText("Pas assez d'argent !");
-        }
-    }
-
-    @FXML
-    private void buyAnimal(String animalType) {
-        double price = getAnimalPrice(animalType);
-        if (farm.spendMoney(price)) {
-            // Ajouter un animal à l'inventaire
-            messageLabel.setText(animalType + " acheté !");
-        } else {
-            messageLabel.setText("Pas assez d'argent !");
-        }
-    }
-
-    private double getCropPrice(String cropType) {
-        switch (cropType) {
-            case "blé": return 10.0;
-            case "maïs": return 15.0;
-            case "carotte": return 8.0;
-            default: return 0;
-        }
-    }
-
-    private double getAnimalPrice(String animalType) {
-        switch (animalType) {
-            case "poule": return 50.0;
-            case "vache": return 200.0;
-            case "cochon": return 150.0;
-            default: return 0;
+            LOGGER.warning("Tentative d'achat de " + type + " sans argent suffisant");
         }
     }
 
     @FXML
     private void buyWheat() {
-        buySeed("blé");
+        buySeed("ble", 10.0);
     }
 
     @FXML
     private void buyCorn() {
-        buySeed("maïs");
+        buySeed("mais", 15.0);
     }
 
     @FXML
     private void buyCarrot() {
-        buySeed("carotte");
+        buySeed("carotte", 8.0);
+    }
+
+    private void buyAnimal(String type, double price) {
+        if (farm == null) {
+            LOGGER.severe("Tentative d'achat d'un animal alors que farm est null");
+            messageLabel.setText("Erreur: Le jeu n'est pas démarré");
+            return;
+        }
+
+        if (farm.spendMoney(price)) {
+            // Ajouter directement à l'inventaire
+            farm.getInventory().put(type, farm.getInventory().getOrDefault(type, 0) + 1);
+            messageLabel.setText("Achat d'un " + type + " réussi !");
+            LOGGER.info("Achat d'un " + type + " réussi");
+        } else {
+            messageLabel.setText("Pas assez d'argent !");
+            LOGGER.warning("Tentative d'achat d'un " + type + " sans argent suffisant");
+        }
     }
 
     @FXML
     private void buyChicken() {
-        buyAnimal("poule");
+        buyAnimal("poule", 50.0);
     }
 
     @FXML
     private void buyCow() {
-        buyAnimal("vache");
+        buyAnimal("vache", 200.0);
     }
 
     @FXML
     private void buyPig() {
-        buyAnimal("cochon");
+        buyAnimal("cochon", 150.0);
     }
-
 }

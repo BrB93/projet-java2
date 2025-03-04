@@ -18,8 +18,9 @@
         </MenuBar>
     </top>
     <center>
-        <VBox alignment="CENTER" spacing="10">
-            <Button text="Démarrer" onAction="#handleStart"/>
+        <VBox fx:id="centerVBox" alignment="CENTER" spacing="10">
+            <Button fx:id="startButton" text="Nouvelle Partie" onAction="#handleNewGame"/>
+            <Button text="Charger une partie" onAction="#handleLoad"/>
             <Button text="Paramètres" onAction="#handleSettings"/>
         </VBox>
     </center>
@@ -29,4 +30,7 @@
     <left>
         <fx:include source="dashboard.fxml" fx:id="dashboardPane"/>
     </left>
+    <bottom>
+        <fx:include source="field.fxml" fx:id="fieldPane"/>
+    </bottom>
 </BorderPane>
