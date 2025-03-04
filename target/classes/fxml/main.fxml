@@ -26,4 +26,7 @@
     <right>
         <fx:include source="store.fxml" fx:id="storePane"/>
     </right>
+    <left>
+        <fx:include source="dashboard.fxml" fx:id="dashboardPane"/>
+    </left>
 </BorderPane>

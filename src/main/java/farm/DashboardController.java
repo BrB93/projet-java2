@@ -1,21 +1,25 @@
 package farm;
 
-import farm.Farm;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
 public class DashboardController {
+    private Farm farm;
 
     @FXML
     private Label moneyLabel;
 
-    private Farm farm;
-
     public void setFarm(Farm farm) {
         this.farm = farm;
+        refresh();
     }
 
     public void refresh() {
-        moneyLabel.setText("Argent : " + farm.getMoney());
+        if (farm != null) {
+            Platform.runLater(() -> {
+                moneyLabel.setText("Argent : " + farm.getMoney() + " €");
+            });
+        }
     }
 }
