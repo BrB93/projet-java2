@@ -1,16 +1,20 @@
 package farm;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.layout.GridPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import javafx.scene.control.Tooltip;
+import javafx.scene.effect.Glow;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -21,7 +25,6 @@ public class FieldController {
 
     @FXML private GridPane fieldGrid;
     @FXML private VBox inventoryPanel;
-    @FXML private ListView<String> inventoryListView;
     @FXML private Label selectedItemLabel;
     @FXML private Label inventoryLabel;
     @FXML private TableView<Map.Entry<String, Integer>> inventoryTableView;
@@ -37,7 +40,15 @@ public class FieldController {
         LOGGER.info("Initialisation du FieldController");
         setupFieldGrid();
         setupInventoryTable();
+        setupGameLoop();
         updateInventoryDisplay();
+
+        // Attendre que la scène soit disponible
+        fieldGrid.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                loadStylesheet();
+            }
+        });
     }
 
     private void setupFieldGrid() {
@@ -58,13 +69,12 @@ public class FieldController {
 
     private Button createCellButton(int row, int col) {
         Button cellButton = new Button();
-        cellButton.setPrefSize(60, 60);
-        cellButton.getStyleClass().add("field-cell");
+        cellButton.setPrefSize(100, 100);
+        cellButton.getStyleClass().add("empty-cell"); // Remplacer "field-cell" par "empty-cell"
         cellButton.setUserData(row + "," + col);
         cellButton.setOnAction(e -> handleCellClick(row, col, cellButton));
         return cellButton;
     }
-
     private void setupInventoryTable() {
         if (inventoryTableView == null) {
             LOGGER.warning("inventoryTableView est null");
@@ -106,7 +116,25 @@ public class FieldController {
     }
 
     private void handleCellClick(int row, int col, Button cellButton) {
-        if (farm == null || selectedItemType == null || selectedItemType.isEmpty()) {
+        if (farm == null) {
+            return;
+        }
+
+        String position = row + "," + col;
+
+        // Vérifier si une culture est prête à être récoltée à cette position
+        Crop cropToHarvest = farm.getPlantedCrops().stream()
+                .filter(crop -> crop.getPosition().equals(position) && crop.isReadyToHarvest())
+                .findFirst()
+                .orElse(null);
+
+        if (cropToHarvest != null) {
+            harvestCrop(cropToHarvest, cellButton);
+            return;
+        }
+
+        // Si aucune culture prête à récolter, continuer avec le comportement existant
+        if (selectedItemType == null || selectedItemType.isEmpty()) {
             return;
         }
 
@@ -128,33 +156,29 @@ public class FieldController {
     }
 
     private void placeCrop(String cropType, int row, int col, Button cellButton) {
-        // Vérification supplémentaire que la case est libre
-        if (!cellButton.getText().isEmpty()) {
-            LOGGER.warning("Tentative de plantation sur une case déjà occupée");
-            return;
-        }
-
         Crop crop = new Crop(cropType);
         crop.setPosition(row + "," + col);
         farm.removeCropFromInventory(cropType);
         farm.getPlantedCrops().add(crop);
-        updateCell(cellButton, cropType, "crop-cell");
+
+        // Utiliser la nouvelle méthode d'affichage
+        updateCellWithStage(cellButton, cropType, crop.getDisplayText(),
+                "crop-cell", crop.getStageStyleClass());
+
         updateInventoryDisplay();
         LOGGER.info("Culture " + cropType + " placée en " + row + "," + col);
     }
 
     private void placeAnimal(String animalType, int row, int col, Button cellButton) {
-        // Vérification supplémentaire que la case est libre
-        if (!cellButton.getText().isEmpty()) {
-            LOGGER.warning("Tentative de placement d'animal sur une case déjà occupée");
-            return;
-        }
-
         Animal animal = new Animal(animalType);
         animal.setPosition(row + "," + col);
         farm.getInventory().put(animalType, farm.getInventory().getOrDefault(animalType, 1) - 1);
         farm.getAnimals().add(animal);
-        updateCell(cellButton, animalType, "animal-cell");
+
+        // Utiliser la nouvelle méthode d'affichage
+        updateCellWithStage(cellButton, animalType, animal.getDisplayText(),
+                "animal-cell", animal.getStageStyleClass());
+
         updateInventoryDisplay();
         LOGGER.info("Animal " + animalType + " placé en " + row + "," + col);
     }
@@ -177,7 +201,17 @@ public class FieldController {
         // Mise à jour du tableau d'inventaire
         if (inventoryTableView != null) {
             inventoryTableView.getItems().clear();
-            inventoryTableView.getItems().addAll(farm.getInventory().entrySet());
+            inventoryTableView.setItems(FXCollections.observableArrayList(farm.getInventory().entrySet()));
+        }
+    }
+
+    public void loadStylesheet() {
+        try {
+            String cssPath = getClass().getResource("/css/styles.css").toExternalForm();
+            fieldGrid.getScene().getStylesheets().add(cssPath);
+            LOGGER.info("Feuille de style chargée: " + cssPath);
+        } catch (Exception e) {
+            LOGGER.severe("Erreur lors du chargement de la feuille de style: " + e.getMessage());
         }
     }
 
@@ -192,11 +226,54 @@ public class FieldController {
         updateFieldDisplay();
     }
 
+    private void setupGameLoop() {
+        Timeline gameLoop = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            LOGGER.info("Mise à jour du terrain à " + System.currentTimeMillis());
+            updateFieldDisplay();
+        }));
+        gameLoop.setCycleCount(Timeline.INDEFINITE);
+        gameLoop.play();
+    }
+
     private void updateFieldDisplay() {
-        if (fieldGrid == null || farm == null) return;
+        if (farm == null) return;
+
+        // Nettoyer d'abord le terrain
         clearField();
-        updateCropsDisplay();
-        updateAnimalsDisplay();
+
+        // Mettre à jour les cultures
+        for (Crop crop : farm.getPlantedCrops()) {
+            crop.updateGrowthStage();
+            String position = crop.getPosition();
+            if (position != null) {
+                String[] coordinates = position.split(",");
+                int row = Integer.parseInt(coordinates[0]);
+                int col = Integer.parseInt(coordinates[1]);
+                Button cellButton = getCellButton(row, col);
+
+                if (cellButton != null) {
+                    updateCellWithStage(cellButton, crop.getType(), crop.getDisplayText(),
+                            "crop-cell", crop.getStageStyleClass());
+                }
+            }
+        }
+
+        // Mettre à jour les animaux
+        for (Animal animal : farm.getAnimals()) {
+            animal.updateDevelopmentStage();
+            String position = animal.getPosition();
+            if (position != null) {
+                String[] coordinates = position.split(",");
+                int row = Integer.parseInt(coordinates[0]);
+                int col = Integer.parseInt(coordinates[1]);
+                Button cellButton = getCellButton(row, col);
+
+                if (cellButton != null) {
+                    updateCellWithStage(cellButton, animal.getType(), animal.getDisplayText(),
+                            "animal-cell", animal.getStageStyleClass());
+                }
+            }
+        }
     }
 
     private void clearField() {
@@ -205,50 +282,48 @@ public class FieldController {
                 .map(node -> (Button) node)
                 .forEach(button -> {
                     button.setText("");
-                    button.getStyleClass().removeAll("crop-cell", "animal-cell");
+                    button.getStyleClass().removeAll("crop-cell", "animal-cell",
+                            "seed-stage", "growing-stage", "ready-stage",
+                            "baby-stage", "young-stage", "adult-stage");
+                    // Ajouter la classe pour les cellules vides
+                    button.getStyleClass().add("empty-cell");
                 });
     }
 
-    private void updateCropsDisplay() {
-        if (farm.getPlantedCrops() != null) {
-            farm.getPlantedCrops().stream()
-                    .filter(crop -> crop.getPosition() != null)
-                    .forEach(this::displayCrop);
-        }
-    }
+    private void updateCellWithStage(Button cellButton, String itemType, String displayText,
+                                     String baseStyleClass, String stageStyleClass) {
+        cellButton.setText(displayText);
 
-    private void updateAnimalsDisplay() {
-        if (farm.getAnimals() != null) {
-            farm.getAnimals().stream()
-                    .filter(animal -> animal.getPosition() != null)
-                    .forEach(this::displayAnimal);
-        }
-    }
+        // Supprimer tous les styles précédents
+        cellButton.getStyleClass().removeIf(style ->
+                style.equals("crop-cell") ||
+                        style.equals("animal-cell") ||
+                        style.equals("empty-cell") ||
+                        style.contains("-stage") ||
+                        style.equals("harvestable")); // Ajouter cette ligne
 
-    private void displayCrop(Crop crop) {
-        displayGridItem(crop.getPosition(), crop.getName(), "crop-cell");
-    }
+        // Ajouter les nouveaux styles
+        cellButton.getStyleClass().add(baseStyleClass);
+        if (stageStyleClass != null && !stageStyleClass.isEmpty()) {
+            cellButton.getStyleClass().add(stageStyleClass);
 
-    private void displayAnimal(Animal animal) {
-        displayGridItem(animal.getPosition(), animal.getType(), "animal-cell");
-    }
-
-    private void displayGridItem(String position, String text, String styleClass) {
-        if (position == null) return;
-
-        String[] coords = position.split(",");
-        if (coords.length != 2) return;
-
-        try {
-            int row = Integer.parseInt(coords[0]);
-            int col = Integer.parseInt(coords[1]);
-            Button cellButton = getCellButton(row, col);
-            if (cellButton != null) {
-                updateCell(cellButton, text, styleClass);
+            // Ajouter un style spécial pour les cultures prêtes à être récoltées
+            if (stageStyleClass.equals("ready-stage") && baseStyleClass.equals("crop-cell")) {
+                cellButton.getStyleClass().add("harvestable");
             }
-        } catch (NumberFormatException e) {
-            LOGGER.warning("Position invalide: " + position);
         }
+
+        // Ajouter une infobulle avec instruction de récolte si applicable
+        String tooltipText = displayText;
+        if (stageStyleClass.equals("ready-stage") && baseStyleClass.equals("crop-cell")) {
+            tooltipText += " - Cliquez pour récolter";
+        }
+        Tooltip tooltip = new Tooltip(tooltipText);
+        cellButton.setTooltip(tooltip);
+
+        // Effet de survol
+        cellButton.setOnMouseEntered(e -> cellButton.setEffect(new Glow(0.3)));
+        cellButton.setOnMouseExited(e -> cellButton.setEffect(null));
     }
 
     private Button getCellButton(int row, int col) {
@@ -265,7 +340,7 @@ public class FieldController {
     @FXML private void selectCarrot() { selectItem("carotte", "plant", "Carotte"); }
     @FXML private void selectCow() { selectItem("vache", "place", "Vache"); }
     @FXML private void selectChicken() { selectItem("poule", "place", "Poule"); }
-    @FXML private void selectPig() { selectItem("cochon", "place", "Cochon"); }
+    @FXML private void selectPig() { selectItem("mouton", "place", "Mouton"); }
 
     private void selectItem(String type, String action, String displayName) {
         selectedItemType = type;
@@ -279,4 +354,37 @@ public class FieldController {
         this.farm = farm;
         updateInventoryDisplay();
     }
+
+    private void harvestCrop(Crop crop, Button cellButton) {
+        String type = crop.getType();
+        int harvestedAmount = getHarvestAmount(type);
+
+        // Ajouter les produits récoltés à l'inventaire
+        String harvestedResource = type; // Le nom du type est aussi le nom du produit récolté
+        farm.addToInventory(harvestedResource, harvestedAmount);  // Correction ici
+
+        // Retirer la culture du terrain
+        farm.getPlantedCrops().remove(crop);
+
+        // Effacer la cellule
+        cellButton.setText("");
+        cellButton.getStyleClass().removeAll("crop-cell", "seed-stage", "growing-stage", "ready-stage", "harvestable");
+        cellButton.getStyleClass().add("empty-cell");
+
+        // Mettre à jour l'affichage
+        updateInventoryDisplay();
+
+        LOGGER.info("Récolté " + harvestedAmount + " " + harvestedResource + " de " + type);
+        selectedItemLabel.setText("Récolté: " + harvestedAmount + " " + harvestedResource);
+    }
+
+    private int getHarvestAmount(String cropType) {
+        switch(cropType.toLowerCase()) {
+            case "ble": return 3;
+            case "mais": return 5;
+            case "carotte": return 7;
+            default: return 1;
+        }
+    }
+
 }

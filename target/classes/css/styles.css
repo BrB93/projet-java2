@@ -46,3 +46,80 @@
 .list-cell:empty {
     -fx-background-color: transparent;
 }
+
+/* Styles pour les stades de croissance des cultures */
+.seed-stage {
+    -fx-background-color: #f0f4c3;
+    -fx-text-fill: #33691e;
+}
+
+.growing-stage {
+    -fx-background-color: #c5e1a5;
+    -fx-text-fill: #33691e;
+}
+
+.ready-stage {
+    -fx-background-color: #8bc34a;
+    -fx-text-fill: #33691e;
+    -fx-font-weight: bold;
+}
+
+/* Styles pour les stades de croissance des cultures */
+.crop-cell {
+    -fx-border-color: darkgreen;
+    -fx-border-width: 2px;
+}
+
+.seed-stage {
+    -fx-background-color: #f0f4c3;
+    -fx-text-fill: #33691e;
+}
+
+.growing-stage {
+    -fx-background-color: #c5e1a5;
+    -fx-text-fill: #33691e;
+    -fx-font-weight: normal;
+}
+
+.ready-stage {
+    -fx-background-color: #8bc34a;
+    -fx-text-fill: #33691e;
+    -fx-font-weight: bold;
+}
+
+/* Styles pour les stades de développement des animaux */
+.animal-cell {
+    -fx-border-color: #795548;
+    -fx-border-width: 2px;
+}
+
+.baby-stage {
+    -fx-background-color: #ffecb3;
+    -fx-text-fill: #663300;
+}
+
+.young-stage {
+    -fx-background-color: #ffe082;
+    -fx-text-fill: #663300;
+    -fx-font-weight: normal;
+}
+
+.adult-stage {
+    -fx-background-color: #ffd54f;
+    -fx-text-fill: #663300;
+    -fx-font-weight: bold;
+}
+
+/* Style par défaut pour les cellules du champ */
+.field-cell {
+    -fx-background-color: #e8f5e9;
+    -fx-border-color: #81c784;
+    -fx-border-width: 1px;
+}
+
+/* Style pour les cellules vides (terre) */
+.empty-cell {
+    -fx-background-color: #8D6E63; /* Couleur marron terre */
+    -fx-border-color: #6D4C41;     /* Bordure plus foncée */
+    -fx-border-width: 1px;
+}

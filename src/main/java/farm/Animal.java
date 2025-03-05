@@ -6,6 +6,9 @@ import java.util.logging.Logger;
 public class Animal implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(Animal.class.getName());
+    public static final int BABY_STAGE = 0;
+    public static final int YOUNG_STAGE = 1;
+    public static final int ADULT_STAGE = 2;
 
     // Propriétés de base
     private String type;
@@ -16,6 +19,10 @@ public class Animal implements Serializable {
     private String position;
     private long lastProductionTime;
     private boolean isProducing = true;
+    private int developmentStage = BABY_STAGE;
+    private long birthTime;
+    private long timeToNextStage;
+    private int maturationTime; // Ajout de la propriété manquante
 
     /**
      * Constructeur simple avec juste le type
@@ -23,7 +30,9 @@ public class Animal implements Serializable {
     public Animal(String type) {
         this.type = type.toLowerCase();
         setDefaultValues(this.type);
+        this.birthTime = System.currentTimeMillis();
         this.lastProductionTime = System.currentTimeMillis();
+        calculateTimeToNextStage();
     }
 
     /**
@@ -37,9 +46,6 @@ public class Animal implements Serializable {
         this.lastProductionTime = System.currentTimeMillis();
     }
 
-    /**
-     * Définit les valeurs par défaut selon le type d'animal
-     */
     private void setDefaultValues(String animalType) {
         switch(animalType) {
             case "poule":
@@ -52,7 +58,7 @@ public class Animal implements Serializable {
                 this.productionAmount = 20;
                 this.productionInterval = 30;
                 break;
-            case "cochon":
+            case "mouton":  // Changé de "cochon" à "mouton"
                 this.price = 150;
                 this.productionAmount = 25;
                 this.productionInterval = 40;
@@ -64,6 +70,67 @@ public class Animal implements Serializable {
                 this.productionInterval = 20;
                 break;
         }
+
+        switch(animalType) {
+            case "poule":
+                this.maturationTime = 10; // en secondes
+                break;
+            case "vache":
+                this.maturationTime = 10;
+                break;
+            case "mouton":  // Changé de "cochon" à "mouton"
+                this.maturationTime = 10;
+                break;
+            default:
+                this.maturationTime = 10;
+                break;
+        }
+    }
+    private void calculateTimeToNextStage() {
+        // Diviser le temps total de maturation en 2 périodes
+        timeToNextStage = maturationTime / 2 * 1000; // Convertir en millisecondes
+    }
+
+    public void updateDevelopmentStage() {
+        long currentTime = System.currentTimeMillis();
+        long elapsedTime = currentTime - birthTime;
+
+        if (developmentStage == BABY_STAGE && elapsedTime >= timeToNextStage) {
+            developmentStage = YOUNG_STAGE;
+            birthTime = currentTime; // Réinitialiser pour le prochain stade
+        } else if (developmentStage == YOUNG_STAGE && elapsedTime >= timeToNextStage) {
+            developmentStage = ADULT_STAGE;
+        }
+    }
+
+    public int getDevelopmentStage() {
+        return developmentStage;
+    }
+
+    public String getDisplayText() {
+        switch(developmentStage) {
+            case BABY_STAGE:
+                return type + " (bébé)";
+            case YOUNG_STAGE:
+                return type + " (jeune)";
+            case ADULT_STAGE:
+                return type + " (adulte)";
+            default:
+                return type;
+        }
+    }
+
+    public String getStageStyleClass() {
+        switch(developmentStage) {
+            case BABY_STAGE:
+                return "baby-stage";
+            case YOUNG_STAGE:
+                return "young-stage";
+            case ADULT_STAGE:
+                return "adult-stage";
+            default:
+                return "";
+        }
     }
 
     /**
@@ -72,7 +139,8 @@ public class Animal implements Serializable {
      * @return La quantité produite (0 si pas de production à ce cycle)
      */
     public int updateProductionCycle(Farm farm) {
-        if (!isProducing) {
+        // Les animaux ne produisent que s'ils sont adultes
+        if (!isProducing || developmentStage < ADULT_STAGE) {
             return 0;
         }
 
@@ -81,8 +149,6 @@ public class Animal implements Serializable {
 
         if (elapsedSeconds >= productionInterval) {
             lastProductionTime = currentTime;
-
-            // Production selon le type d'animal
             String resource = getProductionType();
             if (farm != null) {
                 farm.addResource(resource, productionAmount);
@@ -103,13 +169,12 @@ public class Animal implements Serializable {
                 return "œuf";
             case "vache":
                 return "lait";
-            case "cochon":
-                return "viande";
+            case "mouton":  // Changé de "cochon" à "mouton"
+                return "laine";  // Changé de "viande" à "laine" pour correspondre à un mouton
             default:
                 return "ressource";
         }
     }
-
     /**
      * Calcule le temps restant avant la prochaine production
      * @return Temps en secondes avant la prochaine production
@@ -176,6 +241,14 @@ public class Animal implements Serializable {
 
     public long getLastProductionTime() {
         return lastProductionTime;
+    }
+
+    public int getMaturationTime() {
+        return maturationTime;
+    }
+
+    public void setMaturationTime(int maturationTime) {
+        this.maturationTime = maturationTime;
     }
 
     /**

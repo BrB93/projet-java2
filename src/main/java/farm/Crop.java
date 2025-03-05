@@ -2,173 +2,170 @@ package farm;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 public class Crop implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(Crop.class.getName());
 
-    // Propriétés de base
-    private String name;
-    private String type;
-    private double buyPrice;
-    private double sellPrice;
-    private int growthTime; // temps en secondes
-    private int growthStage; // 0: semé, 1: en croissance, 2: mûr
-    private long plantTime;
-    private String position;
-    private boolean isHarvestable = false;
-    private int yield; // quantité récoltée
+    // Constantes pour les stades de croissance
+    public static final int SEED_STAGE = 0;
+    public static final int GROWING_STAGE = 1;
+    public static final int READY_STAGE = 2;
 
-    /**
-     * Constructeur complet
-     */
-    public Crop(String name, double buyPrice, double sellPrice, int growthTime, int yield) {
-        this.name = name;
-        this.type = name.toLowerCase();
-        this.buyPrice = buyPrice;
-        this.sellPrice = sellPrice;
-        this.growthTime = growthTime;
-        this.growthStage = 0;
-        this.plantTime = System.currentTimeMillis();
-        this.position = null;
-        this.yield = yield;
-    }
+    // Propriétés de base
+    private String type;
+    private int price;
+    private int growthTime; // temps total de croissance en secondes
+    private int yield; // quantité produite à la récolte
+    private String position;
+
+    // Propriétés pour les stades de croissance
+    private int growthStage = SEED_STAGE;
+    private long plantedTime;
+    private long timeToNextStage;
 
     /**
      * Constructeur simple avec juste le type
      */
     public Crop(String type) {
         this.type = type.toLowerCase();
-        this.name = type;
-        setDefaultValues(type);
-        this.plantTime = System.currentTimeMillis();
+        setDefaultValues(this.type);
+        this.plantedTime = System.currentTimeMillis();
+        calculateTimeToNextStage();
+    }
+
+    /**
+     * Constructeur complet avec tous les paramètres
+     */
+    public Crop(String type, int price, int growthTime, int yield) {
+        this.type = type.toLowerCase();
+        this.price = price;
+        this.growthTime = growthTime;
+        this.yield = yield;
+        this.plantedTime = System.currentTimeMillis();
+        calculateTimeToNextStage();
     }
 
     /**
      * Définit les valeurs par défaut selon le type de culture
      */
     private void setDefaultValues(String cropType) {
-        switch (cropType.toLowerCase()) {
+        switch(cropType) {
             case "ble":
-                this.buyPrice = 5.0;
-                this.sellPrice = 10.0;
-                this.growthTime = 30; // 30 secondes
-                this.yield = 3;
+                this.price = 10;
+                this.yield = 20;
+                this.growthTime = 10; // en secondes
                 break;
             case "mais":
-                this.buyPrice = 8.0;
-                this.sellPrice = 15.0;
-                this.growthTime = 45; // 45 secondes
-                this.yield = 5;
+                this.price = 15;
+                this.yield = 25;
+                this.growthTime = 10;
                 break;
             case "carotte":
-                this.buyPrice = 3.0;
-                this.sellPrice = 7.0;
-                this.growthTime = 20; // 20 secondes
-                this.yield = 2;
+                this.price = 5;
+                this.yield = 15;
+                this.growthTime = 10;
                 break;
             default:
                 LOGGER.warning("Type de culture inconnu: " + cropType + ", utilisation des valeurs par défaut");
-                this.buyPrice = 5.0;
-                this.sellPrice = 8.0;
-                this.growthTime = 25; // 25 secondes
-                this.yield = 1;
+                this.price = 10;
+                this.yield = 15;
+                this.growthTime = 45;
                 break;
         }
     }
 
     /**
-     * Met à jour l'étape de croissance selon le temps écoulé
+     * Calcule le temps nécessaire pour passer au prochain stade
+     */
+    private void calculateTimeToNextStage() {
+        // Diviser le temps total de croissance en 2 périodes
+        timeToNextStage = growthTime / 2 * 1000; // Convertir en millisecondes
+    }
+
+    /**
+     * Met à jour le stade de croissance en fonction du temps écoulé
      */
     public void updateGrowthStage() {
-        try {
-            long currentTime = System.currentTimeMillis();
-            long elapsedSeconds = (currentTime - plantTime) / 1000;
+        long currentTime = System.currentTimeMillis();
+        long elapsedTime = currentTime - plantedTime;
 
-            if (elapsedSeconds >= growthTime && growthStage < 2) {
-                growthStage = 2; // mûr
-                isHarvestable = true;
-                LOGGER.fine(name + " à la position " + position + " est maintenant mûr");
-            } else if (elapsedSeconds >= growthTime / 2 && growthStage < 1) {
-                growthStage = 1; // en croissance
-                LOGGER.fine(name + " à la position " + position + " est en croissance");
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Erreur lors de la mise à jour de l'étape de croissance", e);
+        if (growthStage == SEED_STAGE && elapsedTime >= timeToNextStage) {
+            growthStage = GROWING_STAGE;
+            plantedTime = currentTime; // Réinitialiser pour le prochain stade
+        } else if (growthStage == GROWING_STAGE && elapsedTime >= timeToNextStage) {
+            growthStage = READY_STAGE;
         }
     }
 
     /**
-     * Vérifie si la culture est prête à être récoltée
-     * @return true si prête à récolter, false sinon
-     */
-    public boolean isReadyToHarvest() {
-        updateGrowthStage();
-        return growthStage == 2 && isHarvestable;
-    }
-
-    /**
-     * Récolte la culture et retourne la quantité récoltée
-     * @return quantité récoltée, 0 si pas récoltable
-     */
-    public int harvest() {
-        if (isReadyToHarvest()) {
-            isHarvestable = false;
-            LOGGER.info("Récolte de " + name + " à la position " + position + ": " + yield + " unités");
-            return yield;
-        }
-        return 0;
-    }
-
-    /**
-     * Calcule le temps restant avant que la culture soit prête
-     * @return temps en secondes avant la récolte
+     * Retourne le temps restant avant le prochain stade en secondes
      */
     public int getRemainingGrowthTime() {
+        if (growthStage == READY_STAGE) {
+            return 0;
+        }
+
         long currentTime = System.currentTimeMillis();
-        long elapsedSeconds = (currentTime - plantTime) / 1000;
-        int remaining = growthTime - (int)elapsedSeconds;
+        long elapsedTime = currentTime - plantedTime;
+        int remaining = (int)(timeToNextStage - elapsedTime) / 1000;
         return Math.max(0, remaining);
     }
 
     /**
-     * Renvoie le pourcentage de croissance
-     * @return pourcentage entre 0 et 100
+     * Indique si la culture est prête à être récoltée
      */
-    public int getGrowthPercentage() {
-        long currentTime = System.currentTimeMillis();
-        long elapsedSeconds = (currentTime - plantTime) / 1000;
-        return (int) Math.min(100, (elapsedSeconds * 100) / growthTime);
+    public boolean isReadyToHarvest() {
+        return growthStage >= READY_STAGE;
+    }
+
+    /**
+     * Retourne le texte à afficher pour cette culture selon son stade
+     */
+    public String getDisplayText() {
+        switch(growthStage) {
+            case SEED_STAGE:
+                return type + " (graine)";
+            case GROWING_STAGE:
+                return type + " (pousse)";
+            case READY_STAGE:
+                return type + " (prêt)";
+            default:
+                return type;
+        }
+    }
+
+    /**
+     * Retourne la classe de style CSS à utiliser selon le stade
+     */
+    public String getStageStyleClass() {
+        switch(growthStage) {
+            case SEED_STAGE:
+                return "seed-stage";
+            case GROWING_STAGE:
+                return "growing-stage";
+            case READY_STAGE:
+                return "ready-stage";
+            default:
+                return "";
+        }
     }
 
     // Getters et setters
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getType() {
         return type;
     }
 
-    public double getBuyPrice() {
-        return buyPrice;
+    public void setType(String type) {
+        this.type = type.toLowerCase();
     }
 
-    public void setBuyPrice(double buyPrice) {
-        this.buyPrice = buyPrice;
+    public int getPrice() {
+        return price;
     }
 
-    public double getSellPrice() {
-        return sellPrice;
-    }
-
-    public void setSellPrice(double sellPrice) {
-        this.sellPrice = sellPrice;
+    public void setPrice(int price) {
+        this.price = price;
     }
 
     public int getGrowthTime() {
@@ -179,13 +176,12 @@ public class Crop implements Serializable {
         this.growthTime = growthTime;
     }
 
-    public int getGrowthStage() {
-        updateGrowthStage();
-        return growthStage;
+    public int getYield() {
+        return yield;
     }
 
-    public long getPlantTime() {
-        return plantTime;
+    public void setYield(int yield) {
+        this.yield = yield;
     }
 
     public String getPosition() {
@@ -196,17 +192,16 @@ public class Crop implements Serializable {
         this.position = position;
     }
 
-    public int getYield() {
-        return yield;
-    }
-
-    public void setYield(int yield) {
-        this.yield = yield;
+    public int getGrowthStage() {
+        return growthStage;
     }
 
     @Override
     public String toString() {
-        return name + " (" + getGrowthPercentage() + "% de croissance, position: " +
-                (position != null ? position : "non planté") + ")";
+        return type + " (position: " + (position != null ? position : "non plantée") +
+                ", stade: " + (growthStage == SEED_STAGE ? "graine" :
+                growthStage == GROWING_STAGE ? "pousse" : "prêt") + ")";
     }
+
+
 }

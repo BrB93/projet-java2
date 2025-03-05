@@ -143,9 +143,9 @@ public class Farm implements Serializable {
         return resources;
     }
 
-    public void addResource(String name, int quantity) {
-        resources.put(name, resources.getOrDefault(name, 0) + quantity);
-        LOGGER.fine("Ressource ajoutée: " + name + " (" + quantity + ")");
+    public void addResource(String resource, int amount) {
+        int currentAmount = inventory.getOrDefault(resource, 0);
+        inventory.put(resource, currentAmount + amount);
     }
 
     public Map<String, Integer> getCropCounts() {
@@ -166,5 +166,7 @@ public class Farm implements Serializable {
             LOGGER.warning("Stock insuffisant pour retirer " + quantity + " " + itemType);
         }
     }
+
+
 
 }
