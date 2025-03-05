@@ -29,7 +29,7 @@ public class Main extends Application {
             MainController controller = loader.getController();
 
             // Création d'une ferme (si nécessaire)
-            Farm farm = new Farm(1000.0, 5); // Exemple de valeurs: 1000.0 d'argent initial et 5 pour une autre propriété
+            Farm farm = new Farm("1000", 5);
             controller.setFarm(farm);
 
             // Configuration de la fenêtre principale

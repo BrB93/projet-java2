@@ -1,9 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="farm.DashboardController"
-      spacing="10" style="-fx-padding: 10;">
-    <Label text="Tableau de bord Financier" />
-    <Label fx:id="moneyLabel" text="Argent : 0" />
-</VBox>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="farm.DashboardController"
+            styleClass="dashboard-panel">
+
+    <top>
+        <HBox alignment="CENTER" styleClass="dashboard-header">
+            <Label text="Tableau de bord Financier" styleClass="dashboard-title">
+                <font>
+                    <Font name="System Bold" size="16.0"/>
+                </font>
+            </Label>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox fx:id="dashboardContainer" spacing="15" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="10" right="15" bottom="10" left="15"/>
+            </padding>
+
+            <!-- Affichage des finances -->
+            <VBox spacing="5" styleClass="dashboard-section">
+                <Label text="Finances" styleClass="section-title"/>
+                <Label fx:id="moneyLabel" text="0,00 €" styleClass="money-label">
+                    <font>
+                        <Font name="System Bold" size="18.0"/>
+                    </font>
+                </Label>
+            </VBox>
+
+            <!-- Progression de la ferme -->
+            <VBox spacing="5" styleClass="dashboard-section">
+                <Label text="Progression de la ferme" styleClass="section-title"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label fx:id="farmLevelLabel" text="Niveau : 1" styleClass="level-label"/>
+                    <ProgressBar fx:id="farmProgressBar" progress="0.0" prefWidth="150.0"/>
+                </HBox>
+            </VBox>
+
+            <!-- Statistiques de la ferme -->
+            <VBox spacing="5" styleClass="dashboard-section">
+                <Label text="Statistiques" styleClass="section-title"/>
+                <GridPane hgap="10" vgap="5">
+                    <Label text="Taille de la ferme:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Label fx:id="farmSizeLabel" text="0 hectares" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="Cultures:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <Label fx:id="cropsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Animaux:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <Label fx:id="animalsCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                </GridPane>
+            </VBox>
+
+            <!-- Inventaire des ressources -->
+            <VBox spacing="5" styleClass="dashboard-section">
+                <Label text="Ressources disponibles" styleClass="section-title"/>
+                <GridPane fx:id="resourcesGrid" hgap="15" vgap="5">
+                    <!-- Les ressources seront ajoutées dynamiquement ici -->
+                </GridPane>
+            </VBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>

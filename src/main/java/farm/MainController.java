@@ -36,6 +36,11 @@ public class MainController {
     private int elapsedTimeInSeconds = 0;
     private Label timerLabel;
     private boolean gameStarted = false;
+    private MainController mainController;
+
+    public void setMainController(MainController controller) {
+        this.mainController = controller;
+    }
 
     @FXML
     private void initialize() {
@@ -79,7 +84,7 @@ public class MainController {
     public void handleNewGame() {
         try {
             // Initialisation de la ferme
-            farm = new Farm(1000.0, 5);
+            farm = new Farm("Ma ferme", 5);
 
             // Mise à jour des contrôleurs
             updateAllControllers();
@@ -352,4 +357,12 @@ public class MainController {
             LOGGER.log(Level.SEVERE, "Erreur lors de la fermeture de l'application", e);
         }
     }
+
+    public void updateDashboard() {
+        // Met à jour le tableau de bord avec les données actuelles de la ferme
+        if (dashboardPaneController != null && farm != null) {
+            dashboardPaneController.refresh();
+        }
+    }
+
 }
