@@ -7,6 +7,10 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 
+
+
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="farm.FieldController"
             style="-fx-background-color: #eaeaea;">
@@ -33,9 +37,12 @@
         </HBox>
     </bottom>
     <right>
-        <VBox spacing="10" style="-fx-padding: 10;">
-            <Label text="Aucun élément sélectionné" fx:id="selectedItemLabel" />
-        </VBox>
+        <TableView fx:id="inventoryTableView">
+            <columns>
+                <TableColumn fx:id="itemColumn" text="Article" prefWidth="100" />
+                <TableColumn fx:id="quantityColumn" text="Quantité" prefWidth="70" />
+            </columns>
+        </TableView>
     </right>
     <padding>
         <Insets top="5" right="5" bottom="5" left="5"/>

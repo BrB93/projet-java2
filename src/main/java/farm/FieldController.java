@@ -1,11 +1,16 @@
 package farm;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -19,6 +24,9 @@ public class FieldController {
     @FXML private ListView<String> inventoryListView;
     @FXML private Label selectedItemLabel;
     @FXML private Label inventoryLabel;
+    @FXML private TableView<Map.Entry<String, Integer>> inventoryTableView;
+    @FXML private TableColumn<Map.Entry<String, Integer>, String> itemColumn;
+    @FXML private TableColumn<Map.Entry<String, Integer>, Integer> quantityColumn;
 
     private Farm farm;
     private String selectedItemType;
@@ -28,7 +36,7 @@ public class FieldController {
     private void initialize() {
         LOGGER.info("Initialisation du FieldController");
         setupFieldGrid();
-        setupInventoryList();
+        setupInventoryTable();
         updateInventoryDisplay();
     }
 
@@ -57,26 +65,28 @@ public class FieldController {
         return cellButton;
     }
 
-    private void setupInventoryList() {
-        if (inventoryListView == null) {
-            LOGGER.warning("inventoryListView est null");
+    private void setupInventoryTable() {
+        if (inventoryTableView == null) {
+            LOGGER.warning("inventoryTableView est null");
             return;
         }
 
-        inventoryListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+        // Configuration des colonnes du tableau d'inventaire
+        itemColumn.setCellValueFactory(cellData ->
+                new SimpleStringProperty(cellData.getValue().getKey()));
+
+        quantityColumn.setCellValueFactory(cellData ->
+                new SimpleIntegerProperty(cellData.getValue().getValue()).asObject());
+
+        // Ajout d'un gestionnaire de sélection
+        inventoryTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                selectedItemType = extractItemType(newVal);
+                selectedItemType = newVal.getKey();
                 selectedAction = determineAction(selectedItemType);
-                selectedItemLabel.setText("Sélectionné: " + newVal);
-                LOGGER.info("Élément sélectionné: " + newVal);
+                selectedItemLabel.setText("Sélectionné: " + selectedItemType);
+                LOGGER.info("Élément sélectionné: " + selectedItemType);
             }
         });
-    }
-
-    private String extractItemType(String displayText) {
-        if (displayText == null) return "";
-        int bracketIndex = displayText.indexOf(" (");
-        return bracketIndex > 0 ? displayText.substring(0, bracketIndex) : displayText;
     }
 
     private String determineAction(String type) {
@@ -100,6 +110,13 @@ public class FieldController {
             return;
         }
 
+        // Vérification si la case est déjà occupée
+        if (!cellButton.getText().isEmpty()) {
+            selectedItemLabel.setText("Case déjà occupée !");
+            LOGGER.warning("Tentative de placement sur case occupée en " + row + "," + col);
+            return;
+        }
+
         if ("plant".equals(selectedAction) && farm.hasCropInInventory(selectedItemType)) {
             placeCrop(selectedItemType, row, col, cellButton);
         } else if ("place".equals(selectedAction) && hasAnimalInInventory(selectedItemType)) {
@@ -111,6 +128,12 @@ public class FieldController {
     }
 
     private void placeCrop(String cropType, int row, int col, Button cellButton) {
+        // Vérification supplémentaire que la case est libre
+        if (!cellButton.getText().isEmpty()) {
+            LOGGER.warning("Tentative de plantation sur une case déjà occupée");
+            return;
+        }
+
         Crop crop = new Crop(cropType);
         crop.setPosition(row + "," + col);
         farm.removeCropFromInventory(cropType);
@@ -121,6 +144,12 @@ public class FieldController {
     }
 
     private void placeAnimal(String animalType, int row, int col, Button cellButton) {
+        // Vérification supplémentaire que la case est libre
+        if (!cellButton.getText().isEmpty()) {
+            LOGGER.warning("Tentative de placement d'animal sur une case déjà occupée");
+            return;
+        }
+
         Animal animal = new Animal(animalType);
         animal.setPosition(row + "," + col);
         farm.getInventory().put(animalType, farm.getInventory().getOrDefault(animalType, 1) - 1);
@@ -142,22 +171,14 @@ public class FieldController {
     public void updateInventoryDisplay() {
         if (farm == null || farm.getInventory() == null) return;
 
-        StringBuilder inventory = new StringBuilder("Stock: ");
-        farm.getInventory().forEach((item, quantity) ->
-                inventory.append(item).append("(").append(quantity).append(") "));
-        inventoryLabel.setText(inventory.toString());
+        // Affichage du résumé dans le label
+        inventoryLabel.setText("Stock: " + farm.getInventory().size() + " type(s) d'articles");
 
-        updateInventoryListView();
-    }
-
-    private void updateInventoryListView() {
-        if (inventoryListView == null) return;
-
-        inventoryListView.getItems().clear();
-        farm.getInventory().entrySet().stream()
-                .filter(entry -> entry.getValue() > 0)
-                .forEach(entry -> inventoryListView.getItems().add(
-                        entry.getKey() + " (Qté: " + entry.getValue() + ")"));
+        // Mise à jour du tableau d'inventaire
+        if (inventoryTableView != null) {
+            inventoryTableView.getItems().clear();
+            inventoryTableView.getItems().addAll(farm.getInventory().entrySet());
+        }
     }
 
     public void updateField(Farm farm) {

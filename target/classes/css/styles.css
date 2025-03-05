@@ -1,0 +1,48 @@
+.plantable-inventory {
+    -fx-background-color: #e8f5e9;
+    -fx-border-color: #81c784;
+    -fx-border-width: 1px;
+}
+
+.harvested-inventory {
+    -fx-background-color: #fff3e0;
+    -fx-border-color: #ffb74d;
+    -fx-border-width: 1px;
+}
+
+.list-cell {
+    -fx-padding: 5px;
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+.list-view {
+    -fx-pref-height: 200px;
+    -fx-min-height: 100px;
+}
+
+.field-cell {
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+
+.harvestable {
+    -fx-border-color: #4caf50;
+    -fx-border-width: 2px;
+}
+
+.list-view {
+    -fx-background-color: #f8f8f8;
+    -fx-border-color: #ddd;
+}
+
+.list-cell {
+    -fx-padding: 5;
+    -fx-font-family: "Monospace";
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+}
