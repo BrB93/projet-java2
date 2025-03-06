@@ -1,36 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="farm.FieldController"
             style="-fx-background-color: #eaeaea;">
+
+    <!-- Partie supérieure : Informations et alertes -->
     <top>
-        <VBox alignment="CENTER" spacing="5">
-            <Label text="Votre Terrain" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-padding: 5;"/>
-            <Label fx:id="selectedItemLabel" style="-fx-font-size: 12;" text="Sélectionnez un élément..."/>
-            <Label fx:id="balanceLabel" style="-fx-font-size: 14; -fx-text-fill: #006400;" text="Solde: 0 €"/>
+        <VBox alignment="CENTER" spacing="5" style="-fx-padding: 10;">
+            <Label text="Votre Terrain" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+            <HBox alignment="CENTER" spacing="10">
+                <Label fx:id="selectedItemLabel" text="Sélectionnez un élément..." style="-fx-font-size: 12;"/>
+                <Label fx:id="balanceLabel" text="Solde: 0 €" style="-fx-font-size: 14; -fx-text-fill: #006400;"/>
+            </HBox>
+            <!-- Notifications importantes pour les animaux -->
+            <Label fx:id="notificationLabel" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #FF4500;"/>
         </VBox>
     </top>
 
+    <!-- Terrain de jeu au centre -->
     <center>
-        <GridPane fx:id="fieldGrid" alignment="CENTER" hgap="2" vgap="2"
-                  style="-fx-background-color: #8B4513; -fx-padding: 10;">
-        </GridPane>
+        <VBox alignment="CENTER">
+            <GridPane fx:id="fieldGrid" alignment="CENTER" hgap="2" vgap="2"
+                      style="-fx-background-color: #8B4513; -fx-padding: 10;">
+                <!-- La grille sera remplie dynamiquement -->
+            </GridPane>
+        </VBox>
     </center>
 
+    <!-- Actions et contrôles -->
+    <bottom>
+        <VBox spacing="5" alignment="CENTER">
+            <!-- Groupe des actions principales -->
+            <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10;">
+                <VBox spacing="5" alignment="CENTER">
+                    <Label text="Cultures" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="5">
+                        <Button text="Blé" onAction="#selectWheat" focusTraversable="true"/>
+                        <Button text="Maïs" onAction="#selectCorn" focusTraversable="true"/>
+                        <Button text="Carotte" onAction="#selectCarrot" focusTraversable="true"/>
+                    </HBox>
+                </VBox>
+
+                <Separator orientation="VERTICAL"/>
+
+                <VBox spacing="5" alignment="CENTER">
+                    <Label text="Animaux" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="5">
+                        <Button text="Poule" onAction="#selectChicken" focusTraversable="true"/>
+                        <Button text="Vache" onAction="#selectCow" focusTraversable="true"/>
+                        <Button text="Mouton" onAction="#selectSheep" focusTraversable="true"/>
+                    </HBox>
+                </VBox>
+
+                <Separator orientation="VERTICAL"/>
+
+                <VBox spacing="5" alignment="CENTER">
+                    <Label text="Actions" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="5">
+                        <Button fx:id="sellButton" text="Vendre" onAction="#handleSellButtonClick"
+                                styleClass="action-button" style="-fx-base: #90EE90;"/>
+                        <Button text="Nourrir" onAction="#handleFeedAction"
+                                styleClass="action-button" style="-fx-base: #FFD700;"/>
+                    </HBox>
+                </VBox>
+
+                <padding>
+                    <Insets top="5" right="5" bottom="5" left="5"/>
+                </padding>
+            </HBox>
+        </VBox>
+    </bottom>
+
+    <!-- Inventaire à droite -->
     <right>
-        <VBox fx:id="inventoryPanel" spacing="5" style="-fx-padding: 10; -fx-background-color: #f5f5f5;">
-            <Label text="Inventaire" style="-fx-font-weight: bold;"/>
-            <TableView fx:id="inventoryTableView" prefHeight="300">
+        <VBox fx:id="inventoryPanel" spacing="5" style="-fx-padding: 10; -fx-background-color: #f5f5f5; -fx-border-color: #dcdcdc; -fx-border-width: 1;">
+            <Label text="Inventaire" style="-fx-font-size: 14; -fx-font-weight: bold;"/>
+            <TableView fx:id="inventoryTableView" prefHeight="300" prefWidth="300">
                 <columns>
                     <TableColumn fx:id="categoryColumn" text="Catégorie" prefWidth="80"/>
                     <TableColumn fx:id="itemColumn" text="Item" prefWidth="100"/>
@@ -41,19 +90,4 @@
             <Label fx:id="inventoryLabel" style="-fx-font-style: italic;"/>
         </VBox>
     </right>
-
-    <bottom>
-        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10;">
-            <Button text="Blé" onAction="#selectWheat"/>
-            <Button text="Maïs" onAction="#selectCorn"/>
-            <Button text="Carotte" onAction="#selectCarrot"/>
-            <Button text="Poule" onAction="#selectChicken"/>
-            <Button text="Vache" onAction="#selectCow"/>
-            <Button text="Mouton" onAction="#selectSheep"/>
-            <Button fx:id="sellButton" text="Vendre" onAction="#handleSellButtonClick"/>
-            <padding>
-                <Insets top="5" right="5" bottom="5" left="5"/>
-            </padding>
-        </HBox>
-    </bottom>
 </BorderPane>

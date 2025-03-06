@@ -1,23 +1,34 @@
 {
   "name": "Ma ferme",
   "size": 5,
-  "money": 1608,
+  "money": 1561,
   "inventory": {
     "poule": 0,
-    "lait": 39,
+    "lait": 16,
     "mouton": 0,
-    "carotte": 15,
-    "oeuf": 13,
-    "laine": 18,
+    "carotte": 61,
+    "laine": 3,
     "vache": 0,
-    "ble": 20,
-    "mais": 25
+    "ble": 47,
+    "mais": 125
   },
   "resources": {
     "lait": 400,
-    "laine": 700
+    "oeuf": 265,
+    "laine": 450
   },
-  "plantedCrops": [],
+  "plantedCrops": [
+    {
+      "type": "mais",
+      "price": 15,
+      "growthTime": 10,
+      "yield": 25,
+      "position": "0,1",
+      "growthStage": 2,
+      "plantedTime": 1741272781872,
+      "timeToNextStage": 5000
+    }
+  ],
   "animals": [
     {
       "type": "poule",
@@ -25,27 +36,15 @@
       "productionAmount": 5,
       "productionInterval": 15,
       "productionCycle": 0,
-      "position": "0,0",
-      "lastProductionTime": 1741258825345,
+      "position": "2,1",
+      "lastProductionTime": 1741272850864,
       "isProducing": true,
       "developmentStage": 2,
-      "birthTime": 1741257887345,
+      "birthTime": 1741272623875,
       "timeToNextStage": 5000,
-      "maturationTime": 10
-    },
-    {
-      "type": "vache",
-      "price": 200,
-      "productionAmount": 20,
-      "productionInterval": 30,
-      "productionCycle": 0,
-      "position": "1,0",
-      "lastProductionTime": 1741258818338,
-      "isProducing": true,
-      "developmentStage": 2,
-      "birthTime": 1741257888337,
-      "timeToNextStage": 5000,
-      "maturationTime": 10
+      "maturationTime": 10,
+      "lastFeedTime": 1741272830758,
+      "isStarving": false
     },
     {
       "type": "mouton",
@@ -54,13 +53,79 @@
       "productionInterval": 40,
       "productionCycle": 0,
       "position": "2,0",
-      "lastProductionTime": 1741258811697,
+      "lastProductionTime": 1741272845872,
       "isProducing": true,
       "developmentStage": 2,
-      "birthTime": 1741257889699,
+      "birthTime": 1741272629875,
       "timeToNextStage": 5000,
-      "maturationTime": 10
+      "maturationTime": 10,
+      "lastFeedTime": 1741272829364,
+      "isStarving": false
+    },
+    {
+      "type": "vache",
+      "price": 200,
+      "productionAmount": 20,
+      "productionInterval": 30,
+      "productionCycle": 0,
+      "position": "2,2",
+      "lastProductionTime": 1741272855872,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741272631884,
+      "timeToNextStage": 5000,
+      "maturationTime": 10,
+      "lastFeedTime": 1741272824049,
+      "isStarving": false
+    },
+    {
+      "type": "mouton",
+      "price": 150,
+      "productionAmount": 25,
+      "productionInterval": 40,
+      "productionCycle": 0,
+      "position": "4,0",
+      "lastProductionTime": 1741272845872,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741272648930,
+      "timeToNextStage": 5000,
+      "maturationTime": 10,
+      "lastFeedTime": 1741272828135,
+      "isStarving": false
+    },
+    {
+      "type": "vache",
+      "price": 200,
+      "productionAmount": 20,
+      "productionInterval": 30,
+      "productionCycle": 0,
+      "position": "4,1",
+      "lastProductionTime": 1741272845872,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741272651876,
+      "timeToNextStage": 5000,
+      "maturationTime": 10,
+      "lastFeedTime": 1741272832016,
+      "isStarving": false
+    },
+    {
+      "type": "poule",
+      "price": 50,
+      "productionAmount": 5,
+      "productionInterval": 15,
+      "productionCycle": 0,
+      "position": "4,2",
+      "lastProductionTime": 1741272856864,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741272653876,
+      "timeToNextStage": 5000,
+      "maturationTime": 10,
+      "lastFeedTime": 1741272832305,
+      "isStarving": false
     }
   ],
-  "elapsedTime": 953000
+  "elapsedTime": 251000
 }

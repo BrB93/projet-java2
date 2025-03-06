@@ -23,6 +23,8 @@ public class Animal implements Serializable {
     private long birthTime;
     private long timeToNextStage;
     private int maturationTime; // Ajout de la propriété manquante
+    private long lastFeedTime = System.currentTimeMillis();
+    private boolean isStarving = false;
 
     /**
      * Constructeur simple avec juste le type
@@ -311,4 +313,26 @@ public class Animal implements Serializable {
     public String toString() {
         return type + " (position: " + (position != null ? position : "non placé") + ")";
     }
+
+    public boolean needsFeeding() {
+        return System.currentTimeMillis() - lastFeedTime > 60000; // 1 minute
+    }
+
+    public void feed() {
+        lastFeedTime = System.currentTimeMillis();
+        isStarving = false;
+        // Limiter le développement à ADULT_STAGE (valeur 2)
+        developmentStage = Math.min(developmentStage + 1, ADULT_STAGE);
+        // Supprimer l'appel à updateStageStyleClass qui n'existe pas
+    }
+
+
+    public boolean isStarving() {
+        return System.currentTimeMillis() - lastFeedTime > 120000; // 2 minutes
+    }
+
+    public long getLastFeedTime() {
+        return lastFeedTime;
+    }
+
 }

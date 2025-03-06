@@ -10,23 +10,24 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import javafx.scene.control.Tooltip;
-import javafx.scene.effect.Glow;import javafx.collections.ObservableList;
+import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.*;
+
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import javafx.util.Pair;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.List;
+
+import javafx.scene.control.Tooltip;
 
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 public class FieldController {
@@ -58,7 +59,6 @@ public class FieldController {
     private Farm farm;
     private String selectedItemType;
     private String selectedAction;
-    private String selectedItemToSell;
 
     // Référence au MainController
     private MainController mainController;
@@ -66,6 +66,7 @@ public class FieldController {
     public void setMainController(MainController controller) {
         this.mainController = controller;
     }
+
 
     @FXML
     private void initialize() {
@@ -224,16 +225,14 @@ public class FieldController {
     }
 
     private int getPriceForItem(String product) {
-        if (product.equals("oeuf")) return getPriceForProduct("oeuf");
-        if (product.equals("lait")) return getPriceForProduct("lait");
-        if (product.equals("laine")) return getPriceForProduct("laine");
-        if (product.equals("ble_recolte")) return getPriceForCrop("ble_recolte");
-        if (product.equals("mais_recolte")) return getPriceForCrop("mais_recolte");
-        if (product.equals("carotte_recolte")) return getPriceForCrop("carotte_recolte");
-        // Ajouter les graines
-        if (product.equals("ble")) return getPriceForSeed("ble");
-        if (product.equals("mais")) return getPriceForSeed("mais");
-        if (product.equals("carotte")) return getPriceForSeed("carotte");
+        if (product.endsWith("_recolte"))
+            return getPrice(product, "crop");
+        else if (Arrays.asList("poule", "vache", "mouton").contains(product))
+            return getPrice(product, "animal");
+        else if (Arrays.asList("oeuf", "lait", "laine").contains(product))
+            return getPrice(product, "product");
+        else if (Arrays.asList("ble", "mais", "carotte").contains(product))
+            return getPrice(product, "seed");
         return 0;
     }
 
@@ -270,27 +269,6 @@ public class FieldController {
         }
     }
 
-    private void showSellDialog() {
-        int availableAmount = farm.getInventory().getOrDefault(selectedItemType, 0);
-        if (availableAmount <= 0) {
-            selectedItemLabel.setText("Stock insuffisant pour vendre " + selectedItemType);
-            return;
-        }
-
-        // Dans une application réelle, vous pourriez créer une boîte de dialogue pour choisir la quantité
-        // Ici, nous vendons simplement 1 unité pour simplifier
-        int quantityToSell = 1;
-        int pricePerUnit = getPricePerUnit(selectedItemType);
-
-        farm.sellResource(selectedItemType, quantityToSell, pricePerUnit);
-        updateInventoryDisplay();
-        updateBalanceDisplay();
-
-        String displayName = selectedItemType.replace("_recolte", "");
-        selectedItemLabel.setText("Vendu: " + quantityToSell + " " + displayName +
-                " pour " + (quantityToSell * pricePerUnit) + " €");
-    }
-
     private int getPricePerUnit(String resource) {
         switch (resource.toLowerCase()) {
             case "ble":
@@ -310,10 +288,6 @@ public class FieldController {
         }
     }
 
-    private void updateBalanceDisplay() {
-        balanceLabel.setText("Solde: " + farm.getMoney() + " €");
-    }
-
     private String getDisplayNameForProduct(String type) {
         switch (type.toLowerCase()) {
             case "oeuf": return "Œuf de poule";
@@ -328,44 +302,42 @@ public class FieldController {
             return;
         }
 
-        debugAnimalProductions();
-
-
         Map<String, Integer> inventory = farm.getInventory();
         ObservableList<InventoryItem> items = FXCollections.observableArrayList();
 
-        // Afficher les animaux
+
+        // Corriger pour les animaux (ligne 311)
         for (String type : Arrays.asList("poule", "vache", "mouton")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 items.add(new InventoryItem("Animaux", type,
-                        inventory.get(type), getPriceForAnimal(type)));
+                        inventory.get(type), getPrice(type, "animal")));
             }
         }
 
-        // Afficher les graines
+        // Corriger pour les graines (ligne 319)
         for (String type : Arrays.asList("ble", "mais", "carotte")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 items.add(new InventoryItem("Graines", type,
-                        inventory.get(type), getPriceForSeed(type)));
+                        inventory.get(type), getPrice(type, "seed")));
             }
         }
 
-        // Afficher les récoltes
+        // Corriger pour les récoltes (ligne 328)
         for (String type : Arrays.asList("ble_recolte", "mais_recolte", "carotte_recolte")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 String displayName = type.replace("_recolte", "");
                 items.add(new InventoryItem("Récoltes", displayName,
-                        inventory.get(type), getPriceForCrop(type)));
+                        inventory.get(type), getPrice(type, "crop")));
             }
         }
 
-        // Afficher les productions animales
+        // Corriger pour les productions animales (ligne 338)
         for (String type : Arrays.asList("oeuf", "lait", "laine")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 String category = "Productions";
                 String displayName = getDisplayNameForProduct(type);
                 int quantity = inventory.get(type);
-                int value = getPriceForProduct(type);
+                int value = getPrice(type, "product");
 
                 items.add(new InventoryItem(category, displayName, quantity, value));
             }
@@ -379,45 +351,40 @@ public class FieldController {
     }
 
     // Méthodes auxiliaires pour obtenir les prix
-    private int getPriceForSeed(String type) {
-        switch (type.toLowerCase()) {
-            case "ble": return 5;
-            case "mais": return 8;
-            case "carotte": return 3;
+    private int getPrice(String item, String category) {
+        switch(category) {
+            case "seed":
+                switch(item.toLowerCase()) {
+                    case "ble": return 5;
+                    case "mais": return 8;
+                    case "carotte": return 3;
+                    default: return 0;
+                }
+            case "crop":
+                switch(item.toLowerCase()) {
+                    case "ble_recolte": return 15;
+                    case "mais_recolte": return 20;
+                    case "carotte_recolte": return 10;
+                    default: return 0;
+                }
+            case "animal":
+                switch(item.toLowerCase()) {
+                    case "poule": return 50;
+                    case "vache": return 300;
+                    case "mouton": return 200;
+                    default: return 0;
+                }
+            case "product":
+                switch(item.toLowerCase()) {
+                    case "oeuf": return 5;
+                    case "lait": return 12;
+                    case "laine": return 15;
+                    default: return 0;
+                }
             default: return 0;
         }
     }
 
-    private int getPriceForCrop(String type) {
-        switch (type.toLowerCase()) {
-            case "ble_recolte": return 15;
-            case "mais_recolte": return 20;
-            case "carotte_recolte": return 10;
-            default: return 0;
-        }
-    }
-
-    private int getPriceForAnimal(String type) {
-        switch (type.toLowerCase()) {
-            case "poule":
-                return 50;
-            case "vache":
-                return 300;
-            case "mouton":
-                return 200;
-            default:
-                return 0;
-        }
-    }
-
-    private int getPriceForProduct(String type) {
-        switch (type.toLowerCase()) {
-            case "oeuf": return 5;
-            case "lait": return 12;
-            case "laine": return 15;
-            default: return 0;
-        }
-    }
     // Cette méthode doit être appelée dans votre gameLoop
     private void updateAnimals() {
         if (farm == null) return;
@@ -425,8 +392,33 @@ public class FieldController {
         List<Animal> animals = farm.getAnimals();
         if (animals == null || animals.isEmpty()) return;
 
-        boolean productionMade = false;
+        // Vérifier les animaux affamés et les supprimer
+        animals.removeIf(animal -> {
+            if (animal.isStarving()) {
+                // Récupérer la position pour nettoyer la cellule
+                String position = animal.getPosition();
+                String[] coords = position.split(",");
+                int row = Integer.parseInt(coords[0]);
+                int col = Integer.parseInt(coords[1]);
 
+                // Nettoyer la cellule
+                Button cellButton = getCellButton(row, col);
+                if (cellButton != null) {
+                    cellButton.setText("");
+                    cellButton.getStyleClass().removeAll("animal-cell",
+                            "baby-stage", "young-stage", "mature-stage", "hungry-animal");
+                    cellButton.getStyleClass().add("empty-cell");
+                    Tooltip.uninstall(cellButton, null);
+                }
+
+                selectedItemLabel.setText("Un animal est mort de faim à la position " + position);
+                return true; // Supprime l'animal de la liste
+            }
+            return false;
+        });
+
+        // Code existant pour la production
+        boolean productionMade = false;
         for (Animal animal : animals) {
             if (animal.canProduce()) {
                 animal.produceResource(farm);
@@ -434,7 +426,6 @@ public class FieldController {
             }
         }
 
-        // Ne mettre à jour l'affichage que si une production a eu lieu
         if (productionMade) {
             updateInventoryDisplay();
         }
@@ -531,6 +522,11 @@ public class FieldController {
             return;
         }
 
+        if ("feed".equals(selectedAction)) {
+            feedAnimalAt(row, col);
+            return;
+        }
+
         // Si aucune culture prête à récolter, continuer avec le comportement existant
         if (selectedItemType == null || selectedItemType.isEmpty()) {
             return;
@@ -557,21 +553,30 @@ public class FieldController {
         }
     }
 
-    private void debugAnimalProductions() {
-        if (farm == null || farm.getInventory() == null) return;
+    private void feedAnimalAt(int row, int col) {
+        String position = row + "," + col;
+        Animal animal = farm.getAnimals().stream()
+                .filter(a -> position.equals(a.getPosition()))
+                .findFirst().orElse(null);
 
-        Map<String, Integer> inventory = farm.getInventory();
-
-        LOGGER.info("=== CONTENU DE L'INVENTAIRE ===");
-        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
-            LOGGER.info(entry.getKey() + ": " + entry.getValue());
+        if (animal == null) {
+            selectedItemLabel.setText("Aucun animal à cette position");
+            return;
         }
+        // Déterminer le type de nourriture
+        String foodType = animal.getType().equals("poule") ? "mais" :
+                (animal.getType().equals("vache") ? "ble" : "carotte");
 
-        // Vérifier spécifiquement les productions animales
-        LOGGER.info("=== PRODUCTIONS ANIMALES ===");
-        LOGGER.info("Oeufs: " + inventory.getOrDefault("oeuf", 0));
-        LOGGER.info("Lait: " + inventory.getOrDefault("lait", 0));
-        LOGGER.info("Laine: " + inventory.getOrDefault("laine", 0));
+        // Vérifier l'inventaire
+        if (farm.getInventory().getOrDefault(foodType, 0) > 0) {
+            farm.getInventory().put(foodType, farm.getInventory().get(foodType) - 1);
+            animal.feed();
+            updateCellDisplay(animal);
+            updateInventoryDisplay();
+            selectedItemLabel.setText("Animal nourri avec " + foodType + " - Croissance accélérée!");
+        } else {
+            selectedItemLabel.setText("Pas de " + foodType + " disponible - Récoltez plus de cultures!");
+        }
     }
 
     private void placeCrop(String cropType, int row, int col, Button cellButton) {
@@ -628,18 +633,13 @@ public class FieldController {
         LOGGER.info("Animal " + animalType + " placé en " + row + "," + col);
     }
 
-    private void updateCell(Button cellButton, String text, String styleClass) {
-        cellButton.setText(text);
-        cellButton.getStyleClass().add(styleClass);
-    }
-
     private boolean hasAnimalInInventory(String animalType) {
         return farm.getInventory().getOrDefault(animalType, 0) > 0;
     }
 
     public void loadStylesheet() {
         try {
-            String cssPath = getClass().getResource("/css/styles.css").toExternalForm();
+            String cssPath = Objects.requireNonNull(getClass().getResource("/css/styles.css")).toExternalForm();
             fieldGrid.getScene().getStylesheets().add(cssPath);
             LOGGER.info("Feuille de style chargée: " + cssPath);
         } catch (Exception e) {
@@ -662,7 +662,8 @@ public class FieldController {
         Timeline gameLoop = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             updateFieldDisplay();
             updateGrowthStages();
-            updateAnimals(); // Ajouter cette ligne pour mettre à jour les animaux
+            updateAnimals(); // Mise à jour des animaux
+            checkAnimalStatus(); // Vérification et affichage des notifications de faim
         }));
         gameLoop.setCycleCount(Timeline.INDEFINITE);
         gameLoop.play();
@@ -736,19 +737,6 @@ public class FieldController {
                 });
     }
 
-    private Animal createAnimal(String type) {
-        switch (type.toLowerCase()) {
-            case "vache":
-                return new Animal("Vache");
-            case "poule":
-                return new Animal("Poule");
-            case "mouton":
-                return new Animal("Mouton");
-            default:
-                return null;
-        }
-    }
-
     private void updateCellWithStage(Button cellButton, String type, String text,
                                      String baseStyle, String stageStyle) {
         cellButton.setText(text);
@@ -759,31 +747,41 @@ public class FieldController {
             cellButton.getStyleClass().add(stageStyle);
         }
 
-        Tooltip tooltip = new Tooltip(type + "\n" + text);
-        Tooltip.install(cellButton, tooltip);
-    }
+        // Message pour les tooltips des animaux
+        String tooltipText = type + "\n" + text;
 
-    private void checkAndHarvestCrop(int row, int col, Button cellButton) {
-        String position = row + "," + col;
+        // Si c'est un animal, ajouter des informations de nourrissage détaillées
+        if (baseStyle.equals("animal-cell")) {
+            Animal animal = getAnimalAtPosition(cellButton.getUserData().toString());
+            if (animal != null) {
+                // Calculer le temps écoulé depuis le dernier repas
+                long currentTime = System.currentTimeMillis();
+                long timeSinceLastFeed = currentTime - animal.getLastFeedTime();
+                long secondsRemaining = 60 - (timeSinceLastFeed / 1000); // 60 secondes avant needsFeeding
 
-        // Vérifier les cultures
-        for (int i = 0; i < farm.getPlantedCrops().size(); i++) {
-            Crop crop = farm.getPlantedCrops().get(i);
-            if (position.equals(crop.getPosition()) && crop.isReadyToHarvest()) {
-                // Récolter la culture
-                farm.harvestCrop(i);
+                // État de l'animal
+                if (animal.isStarving()) {
+                    tooltipText += "\n⚠️ DANGER: Animal affamé!";
+                    tooltipText += "\nVa mourir prochainement";
+                    cellButton.getStyleClass().add("starving-animal");
+                } else if (animal.needsFeeding()) {
+                    tooltipText += "\n⚠️ A besoin d'être nourri!";
+                    tooltipText += "\nDeviendra affamé dans " + (120 - timeSinceLastFeed/1000) + " secondes";
+                    cellButton.getStyleClass().add("hungry-animal");
+                } else {
+                    tooltipText += "\n✓ Bien nourri";
+                    tooltipText += "\nA nourrir dans " + secondsRemaining + " secondes";
+                }
 
-                // Mettre à jour l'affichage
-                cellButton.setText("");
-                cellButton.getStyleClass().removeAll("crop-cell", "stage-1", "stage-2", "stage-3");
-                cellButton.getStyleClass().add("empty-cell");
-                Tooltip.uninstall(cellButton, null);
-
-                updateInventoryDisplay();
-                LOGGER.info("Culture récoltée en " + position);
-                return;
+                // Instructions de nourrissage
+                String foodType = animal.getType().equals("poule") ? "maïs" :
+                        (animal.getType().equals("vache") ? "blé" : "carotte");
+                tooltipText += "\n\nNourriture: " + foodType;
             }
         }
+
+        Tooltip tooltip = new Tooltip(tooltipText);
+        Tooltip.install(cellButton, tooltip);
     }
 
     private void updateGrowthStages() {
@@ -823,59 +821,127 @@ public class FieldController {
         }
     }
 
-    @FXML
-    private void selectWheat() {
-        selectedItemType = "ble";
-        selectedAction = "plant";
-        selectedItemLabel.setText("Sélectionné: Blé");
-        LOGGER.info("Blé sélectionné pour plantation");
+    private void selectItem(String type, String action, String displayName) {
+        selectedItemType = type;
+        selectedAction = action;
+        selectedItemLabel.setText("Sélectionné: " + displayName);
+        LOGGER.info(displayName + " sélectionné pour " + (action.equals("plant") ? "plantation" : "placement"));
     }
 
-    @FXML
-    private void selectCorn() {
-        selectedItemType = "mais";
-        selectedAction = "plant";
-        selectedItemLabel.setText("Sélectionné: Maïs");
-        LOGGER.info("Maïs sélectionné pour plantation");
-    }
-
-    @FXML
-    private void selectCarrot() {
-        selectedItemType = "carotte";
-        selectedAction = "plant";
-        selectedItemLabel.setText("Sélectionné: Carotte");
-        LOGGER.info("Carotte sélectionnée pour plantation");
-    }
-
-    @FXML
-    private void selectChicken() {
-        selectedItemType = "poule";
-        selectedAction = "place";
-        selectedItemLabel.setText("Sélectionné: Poule");
-        LOGGER.info("Poule sélectionnée pour placement");
-    }
-
-    @FXML
-    private void selectCow() {
-        selectedItemType = "vache";
-        selectedAction = "place";
-        selectedItemLabel.setText("Sélectionné: Vache");
-        LOGGER.info("Vache sélectionnée pour placement");
-    }
-
-    @FXML
-    private void selectSheep() {
-        selectedItemType = "mouton";
-        selectedAction = "place";
-        selectedItemLabel.setText("Sélectionné: Mouton");
-        LOGGER.info("Mouton sélectionné pour placement");
-    }
+    @FXML private void selectWheat() { selectItem("ble", "plant", "Blé"); }
+    @FXML private void selectCorn() { selectItem("mais", "plant", "Maïs"); }
+    @FXML private void selectCarrot() { selectItem("carotte", "plant", "Carotte"); }
+    @FXML private void selectChicken() { selectItem("poule", "place", "Poule"); }
+    @FXML private void selectCow() { selectItem("vache", "place", "Vache"); }
+    @FXML private void selectSheep() { selectItem("mouton", "place", "Mouton"); }
 
     private long lastUpdateTime = System.currentTimeMillis();
 
     public void resetTimer() {
         // Réinitialiser le compteur de temps pour la mise à jour des animaux et cultures
         lastUpdateTime = System.currentTimeMillis();
+    }
+
+    @FXML
+    private void handleFeedAction() {
+        selectItem("nourriture", "feed", "Nourrir animal");
+        selectedItemLabel.setText("Sélectionné: Nourrir animal - Cliquez sur un animal pour le nourrir");
+    }
+
+    private void updateCellDisplay(Animal animal) {
+        String position = animal.getPosition();
+        if (position == null) return;
+
+        String[] coords = position.split(",");
+        int row = Integer.parseInt(coords[0]);
+        int col = Integer.parseInt(coords[1]);
+        Button cellButton = getCellButton(row, col);
+
+        if (cellButton != null) {
+            updateCellWithStage(cellButton, animal.getType(), animal.getDisplayText(),
+                    "animal-cell", animal.getStageStyleClass());
+        }
+    }
+
+    private Animal getAnimalAtPosition(String position) {
+        if (farm == null || farm.getAnimals() == null) return null;
+
+        return farm.getAnimals().stream()
+                .filter(a -> position.equals(a.getPosition()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void checkStarvingAnimals() {
+        if (farm == null || farm.getAnimals() == null) return;
+
+        List<Animal> animalsToRemove = new ArrayList<>();
+
+        for (Animal animal : farm.getAnimals()) {
+            if (animal.isStarving()) {
+                // Marquer l'animal pour suppression
+                animalsToRemove.add(animal);
+
+                // Nettoyer sa cellule
+                String[] coords = animal.getPosition().split(",");
+                int row = Integer.parseInt(coords[0]);
+                int col = Integer.parseInt(coords[1]);
+                clearCell(row, col);
+
+                // Notification à l'utilisateur
+                selectedItemLabel.setText("Un " + animal.getType() + " est mort de faim à la position " + animal.getPosition());
+            }
+        }
+
+        // Supprimer les animaux morts
+        farm.getAnimals().removeAll(animalsToRemove);
+    }
+
+    private void clearCell(int row, int col) {
+        Button cellButton = getCellButton(row, col);
+        if (cellButton != null) {
+            cellButton.setText("");
+            cellButton.getStyleClass().removeAll("animal-cell", "baby-stage", "young-stage", "adult-stage", "hungry-animal");
+            cellButton.getStyleClass().add("empty-cell");
+            Tooltip.uninstall(cellButton, null);
+        }
+    }
+
+    @FXML
+    private Label notificationLabel;
+
+    // Méthode pour vérifier l'état des animaux à intervalles réguliers
+    public void checkAnimalStatus() {
+        if (farm == null || farm.getAnimals() == null || farm.getAnimals().isEmpty()) {
+            notificationLabel.setText("");
+            return;
+        }
+
+        long hungryCount = farm.getAnimals().stream().filter(Animal::needsFeeding).count();
+        long starvingCount = farm.getAnimals().stream().filter(Animal::isStarving).count();
+
+        if (starvingCount > 0) {
+            notificationLabel.setText("⚠️ URGENCE: " + starvingCount + " animal(aux) risque(nt) de mourir de faim!");
+            notificationLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-font-size: 14;");
+        } else if (hungryCount > 0) {
+            notificationLabel.setText("⚠️ Attention: " + hungryCount + " animal(aux) ont besoin d'être nourri(s)!");
+            notificationLabel.setStyle("-fx-text-fill: orange; -fx-font-weight: bold; -fx-font-size: 14;");
+        } else {
+            notificationLabel.setText("");
+        }
+    }
+
+    public void onSceneReady() {
+        try {
+            String cssPath = getClass().getResource("/css/styles.css").toExternalForm();
+            fieldGrid.getScene().getStylesheets().add(cssPath);
+            System.out.println("Feuille de style chargée : " + cssPath);
+        } catch (Exception e) {
+            System.err.println("Erreur lors du chargement de la feuille de style : " + e.getMessage());
+        }
+
+        // Configuration du minuteur pour vérifier l'état des animaux
+        checkAnimalStatus();
     }
 
 }

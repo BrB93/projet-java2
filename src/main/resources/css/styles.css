@@ -123,3 +123,15 @@
     -fx-border-color: #6D4C41;     /* Bordure plus foncée */
     -fx-border-width: 1px;
 }
+
+.hungry-animal {
+    -fx-border-color: red;
+    -fx-border-width: 2px;
+}
+
+.starving-animal {
+    -fx-border-color: darkred;
+    -fx-border-width: 3px;
+    -fx-border-style: dashed;
+    -fx-effect: dropshadow(three-pass-box, red, 10, 0.5, 0, 0);
+}
