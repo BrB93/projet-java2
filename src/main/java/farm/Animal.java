@@ -104,11 +104,30 @@ public class Animal implements Serializable {
     }
 
     public void produceResource(Farm farm) {
-        String resourceType = this.produce();
-        if (resourceType != null && farm != null) {
-            // Ajouter la ressource à l'inventaire de la ferme
-            farm.addResource(resourceType, 1);
-            LOGGER.info("L'animal " + this.type + " a produit: " + resourceType);
+        if (farm == null) return;
+
+        String resourceType = "";
+        int quantity = 0;
+
+        switch (type.toLowerCase()) {
+            case "poule":
+                resourceType = "oeuf";
+                quantity = 1;
+                break;
+            case "vache":
+                resourceType = "lait";
+                quantity = 2;
+                break;
+            case "mouton":
+                resourceType = "laine";
+                quantity = 1;
+                break;
+        }
+
+        if (!resourceType.isEmpty() && quantity > 0) {
+            LOGGER.info("Production de " + quantity + " " + resourceType + "(s) par " + type);
+            farm.addToInventory(resourceType, quantity);
+            lastProductionTime = System.currentTimeMillis();  // Utilisation de la variable existante
         }
     }
     public void updateDevelopmentStage() {

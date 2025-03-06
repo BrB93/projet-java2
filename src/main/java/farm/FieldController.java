@@ -141,10 +141,22 @@ public class FieldController {
         balanceLabel.setText("Solde: " + farm.getMoney() + " €");
     }
 
+    private String getDisplayNameForProduct(String type) {
+        switch (type.toLowerCase()) {
+            case "oeuf": return "Œuf de poule";
+            case "lait": return "Lait de vache";
+            case "laine": return "Laine de mouton";
+            default: return type;
+        }
+    }
+
     private void updateInventoryDisplay() {
         if (farm == null || inventoryTableView == null) {
             return;
         }
+
+        debugAnimalProductions();
+
 
         Map<String, Integer> inventory = farm.getInventory();
         ObservableList<InventoryItem> items = FXCollections.observableArrayList();
@@ -177,8 +189,12 @@ public class FieldController {
         // Afficher les productions animales
         for (String type : Arrays.asList("oeuf", "lait", "laine")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
-                items.add(new InventoryItem("Productions", type,
-                        inventory.get(type), getPriceForProduct(type)));
+                String category = "Productions";
+                String displayName = getDisplayNameForProduct(type);
+                int quantity = inventory.get(type);
+                int value = getPriceForProduct(type);
+
+                items.add(new InventoryItem(category, displayName, quantity, value));
             }
         }
 
@@ -349,7 +365,9 @@ public class FieldController {
 
         // Vérification si la case est déjà occupée
         if (!cellButton.getText().isEmpty()) {
-            selectedItemLabel.setText("Case déjà occupée !");
+            if (selectedItemLabel != null) {
+                selectedItemLabel.setText("Case déjà occupée !");
+            }
             LOGGER.warning("Tentative de placement sur case occupée en " + row + "," + col);
             return;
         }
@@ -359,9 +377,28 @@ public class FieldController {
         } else if ("place".equals(selectedAction) && hasAnimalInInventory(selectedItemType)) {
             placeAnimal(selectedItemType, row, col, cellButton);
         } else {
-            selectedItemLabel.setText("Achetez d'abord " +
-                    ("plant".equals(selectedAction) ? "des graines de " : "un ") + selectedItemType);
+            if (selectedItemLabel != null) {
+                selectedItemLabel.setText("Achetez d'abord " +
+                        ("plant".equals(selectedAction) ? "des graines de " : "un ") + selectedItemType);
+            }
         }
+    }
+
+    private void debugAnimalProductions() {
+        if (farm == null || farm.getInventory() == null) return;
+
+        Map<String, Integer> inventory = farm.getInventory();
+
+        LOGGER.info("=== CONTENU DE L'INVENTAIRE ===");
+        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
+            LOGGER.info(entry.getKey() + ": " + entry.getValue());
+        }
+
+        // Vérifier spécifiquement les productions animales
+        LOGGER.info("=== PRODUCTIONS ANIMALES ===");
+        LOGGER.info("Oeufs: " + inventory.getOrDefault("oeuf", 0));
+        LOGGER.info("Lait: " + inventory.getOrDefault("lait", 0));
+        LOGGER.info("Laine: " + inventory.getOrDefault("laine", 0));
     }
 
     private void placeCrop(String cropType, int row, int col, Button cellButton) {
