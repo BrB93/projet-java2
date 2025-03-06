@@ -12,6 +12,14 @@ import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.Map;
+import java.util.Arrays;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.IOException;
+import javafx.scene.control.Alert;
 
 public class MainController {
     private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
@@ -96,6 +104,14 @@ public class MainController {
         }
     }
 
+    private void showAlert(String title, String message, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
     @FXML
     private FieldController fieldPaneController;
 
@@ -169,6 +185,8 @@ public class MainController {
             LOGGER.log(Level.SEVERE, "Erreur lors du démarrage du jeu", e);
         }
     }
+
+
 
     private VBox createGameInterface() {
         VBox gameBox = new VBox(10);
@@ -286,6 +304,25 @@ public class MainController {
         }
     }
 
+    private void saveGame() {
+        try {
+            // Utilisation de Gson pour la sérialisation
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
+
+            // Le temps écoulé est maintenant inclus dans la ferme
+            String json = gson.toJson(farm);
+
+            // Écriture dans le fichier
+            Files.write(Paths.get("save.json"), json.getBytes());
+
+            showAlert("Sauvegarde", "Jeu sauvegardé avec succès !", Alert.AlertType.INFORMATION);
+        } catch (IOException e) {
+            showAlert("Erreur", "Impossible de sauvegarder le jeu: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
     @FXML
     private void handleSave() {
         try {
@@ -294,7 +331,12 @@ public class MainController {
                 return;
             }
 
-            farm.saveFarmState();
+            // Mettre à jour le temps écoulé dans la ferme
+            farm.setElapsedTime(elapsedTimeInSeconds * 1000L);
+
+            // Utiliser la nouvelle méthode de sauvegarde
+            saveGame();
+
             LOGGER.info("Sauvegarde effectuée avec succès");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Erreur lors de la sauvegarde", e);
@@ -304,24 +346,24 @@ public class MainController {
     @FXML
     private void handleLoad() {
         try {
-            Farm loadedFarm = Farm.loadFarmState();
-            if (loadedFarm == null) {
-                LOGGER.warning("Aucune donnée n'a pu être chargée");
-                return;
+            // Utiliser la nouvelle méthode de chargement
+            loadGame();
+
+            // Si le chargement a réussi
+            if (farm != null) {
+                // Récupérer le temps écoulé depuis la sauvegarde
+                elapsedTimeInSeconds = (int) (farm.getElapsedTime() / 1000);
+
+                // Mettre à jour l'affichage du timer
+                updateTimerDisplay();
+
+                // Si le jeu n'est pas démarré, démarrer l'interface
+                if (!gameStarted) {
+                    startGame();
+                }
+
+                LOGGER.info("Chargement effectué avec succès");
             }
-
-            // Affecter la nouvelle ferme
-            this.farm = loadedFarm;
-
-            // Mettre à jour tous les contrôleurs
-            updateAllControllers();
-
-            // Si le jeu n'est pas démarré, démarrer l'interface
-            if (!gameStarted) {
-                startGame();
-            }
-
-            LOGGER.info("Chargement effectué avec succès");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Erreur lors du chargement", e);
         }
@@ -334,6 +376,27 @@ public class MainController {
             LOGGER.info("Affichage des paramètres");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Erreur lors de l'affichage des paramètres", e);
+        }
+    }
+
+    private void loadGame() {
+        try {
+            // Lecture du fichier
+            String json = new String(Files.readAllBytes(Paths.get("save.json")));
+
+            // Désérialisation
+            Gson gson = new Gson();
+            farm = gson.fromJson(json, Farm.class);
+
+            // Réinitialiser le timer du FieldController
+            fieldPaneController.resetTimer();
+
+            // Mise à jour de l'interface
+            updateAllControllers();
+
+            showAlert("Chargement", "Jeu chargé avec succès !", Alert.AlertType.INFORMATION);
+        } catch (IOException e) {
+            showAlert("Erreur", "Impossible de charger le jeu: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -359,9 +422,8 @@ public class MainController {
     }
 
     public void updateDashboard() {
-        // Met à jour le tableau de bord avec les données actuelles de la ferme
-        if (dashboardPaneController != null && farm != null) {
-            dashboardPaneController.refresh();
+        if (dashboardPaneController != null) {
+            dashboardPaneController.updateResources(farm);
         }
     }
 

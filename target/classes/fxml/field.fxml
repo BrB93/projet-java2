@@ -32,7 +32,7 @@
             <Button text="Carotte" onAction="#selectCarrot"/>
             <Button text="Poule" onAction="#selectChicken"/>
             <Button text="Vache" onAction="#selectCow"/>
-            <Button text="Cochon" onAction="#selectPig"/>
+            <Button text="Mouton" onAction="#selectSheep"/>
             <Button fx:id="sellButton" text="Vendre" onAction="#handleSellButtonClick"/>
         </HBox>
     </bottom>

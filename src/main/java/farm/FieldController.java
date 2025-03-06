@@ -17,6 +17,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Glow;import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.util.Arrays;
+import java.util.List;
 
 
 import java.util.Map;
@@ -97,22 +98,23 @@ public class FieldController {
     }
 
     private void showSellDialog() {
-        int availableAmount = farm.getInventory().getOrDefault(selectedItemToSell, 0);
+        int availableAmount = farm.getInventory().getOrDefault(selectedItemType, 0);
         if (availableAmount <= 0) {
-            selectedItemLabel.setText("Stock insuffisant pour vendre " + selectedItemToSell);
+            selectedItemLabel.setText("Stock insuffisant pour vendre " + selectedItemType);
             return;
         }
 
         // Dans une application réelle, vous pourriez créer une boîte de dialogue pour choisir la quantité
         // Ici, nous vendons simplement 1 unité pour simplifier
         int quantityToSell = 1;
-        int pricePerUnit = getPricePerUnit(selectedItemToSell);
+        int pricePerUnit = getPricePerUnit(selectedItemType);
 
-        farm.sellResource(selectedItemToSell, quantityToSell, pricePerUnit);
+        farm.sellResource(selectedItemType, quantityToSell, pricePerUnit);
         updateInventoryDisplay();
         updateBalanceDisplay();
 
-        selectedItemLabel.setText("Vendu: " + quantityToSell + " " + selectedItemToSell +
+        String displayName = selectedItemType.replace("_recolte", "");
+        selectedItemLabel.setText("Vendu: " + quantityToSell + " " + displayName +
                 " pour " + (quantityToSell * pricePerUnit) + " €");
     }
 
@@ -124,6 +126,12 @@ public class FieldController {
                 return 7;
             case "carotte":
                 return 10;
+            case "oeuf":
+                return 5;
+            case "lait":
+                return 15;
+            case "laine":
+                return 20;
             default:
                 return 1;
         }
@@ -134,85 +142,114 @@ public class FieldController {
     }
 
     private void updateInventoryDisplay() {
-        if (farm == null) return;
+        if (farm == null || inventoryTableView == null) {
+            return;
+        }
 
-        ObservableList<InventoryItem> items = FXCollections.observableArrayList();
         Map<String, Integer> inventory = farm.getInventory();
+        ObservableList<InventoryItem> items = FXCollections.observableArrayList();
 
-        // Graines
+        // Afficher les animaux
+        for (String type : Arrays.asList("poule", "vache", "mouton")) {
+            if (inventory.containsKey(type) && inventory.get(type) > 0) {
+                items.add(new InventoryItem("Animaux", type,
+                        inventory.get(type), getPriceForAnimal(type)));
+            }
+        }
+
+        // Afficher les graines
         for (String type : Arrays.asList("ble", "mais", "carotte")) {
-            if (inventory.containsKey(type)) {
+            if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 items.add(new InventoryItem("Graines", type,
                         inventory.get(type), getPriceForSeed(type)));
             }
         }
 
-        // Récoltes
+        // Afficher les récoltes
         for (String type : Arrays.asList("ble_recolte", "mais_recolte", "carotte_recolte")) {
-            if (inventory.containsKey(type)) {
+            if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 String displayName = type.replace("_recolte", "");
                 items.add(new InventoryItem("Récoltes", displayName,
                         inventory.get(type), getPriceForCrop(type)));
             }
         }
 
-        // Animaux
-        for (String type : Arrays.asList("poule", "vache", "cochon")) {
-            if (inventory.containsKey(type)) {
-                items.add(new InventoryItem("Animaux", type,
-                        inventory.get(type), getPriceForAnimal(type)));
-            }
-        }
-
-        // Productions animales
-        for (String type : Arrays.asList("oeuf", "lait", "viande")) {
-            if (inventory.containsKey(type)) {
+        // Afficher les productions animales
+        for (String type : Arrays.asList("oeuf", "lait", "laine")) {
+            if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 items.add(new InventoryItem("Productions", type,
                         inventory.get(type), getPriceForProduct(type)));
             }
         }
 
         inventoryTableView.setItems(items);
+
+        // Mise à jour de l'affichage du solde
+        if (balanceLabel != null) {
+            balanceLabel.setText("Solde: " + farm.getMoney() + " €");        }
     }
 
     // Méthodes auxiliaires pour obtenir les prix
     private int getPriceForSeed(String type) {
-        // Retourner le prix approprié selon le type
-        return switch (type) {
-            case "ble" -> 10;
-            case "mais" -> 15;
-            case "carotte" -> 20;
-            default -> 0;
-        };
+        switch (type.toLowerCase()) {
+            case "ble": return 5;
+            case "mais": return 8;
+            case "carotte": return 3;
+            default: return 0;
+        }
     }
 
     private int getPriceForCrop(String type) {
-        return switch (type) {
-            case "ble_recolte" -> 30;
-            case "mais_recolte" -> 45;
-            case "carotte_recolte" -> 60;
-            default -> 0;
-        };
+        switch (type.toLowerCase()) {
+            case "ble_recolte": return 15;
+            case "mais_recolte": return 20;
+            case "carotte_recolte": return 10;
+            default: return 0;
+        }
     }
 
     private int getPriceForAnimal(String type) {
-        return switch (type) {
-            case "poule" -> 100;
-            case "vache" -> 500;
-            case "cochon" -> 300;
-            default -> 0;
-        };
+        switch (type.toLowerCase()) {
+            case "poule":
+                return 50;
+            case "vache":
+                return 300;
+            case "mouton":
+                return 200;
+            default:
+                return 0;
+        }
     }
 
     private int getPriceForProduct(String type) {
-        return switch (type) {
-            case "oeuf" -> 5;
-            case "lait" -> 15;
-            case "viande" -> 25;
-            default -> 0;
-        };
+        switch (type.toLowerCase()) {
+            case "oeuf": return 5;
+            case "lait": return 12;
+            case "laine": return 15;
+            default: return 0;
+        }
     }
+    // Cette méthode doit être appelée dans votre gameLoop
+    private void updateAnimals() {
+        if (farm == null) return;
 
+        List<Animal> animals = farm.getAnimals();
+        if (animals == null || animals.isEmpty()) return;
+
+        boolean productionMade = false;
+
+        for (Animal animal : animals) {
+            if (animal.canProduce()) {
+                animal.produceResource(farm);
+                productionMade = true;
+            }
+        }
+
+        // Ne mettre à jour l'affichage que si une production a eu lieu
+        if (productionMade) {
+            updateInventoryDisplay();
+        }
+    }
     private void setupFieldGrid() {
         if (fieldGrid == null) {
             LOGGER.warning("fieldGrid est null");
@@ -228,6 +265,8 @@ public class FieldController {
             }
         }
     }
+
+
 
     private Button createCellButton(int row, int col) {
         Button cellButton = new Button();
@@ -254,9 +293,16 @@ public class FieldController {
         // Ajout d'un gestionnaire de sélection
         inventoryTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                selectedItemType = newVal.getName();
+                // Utiliser le nom d'origine pour les récoltes
+                String itemName = newVal.getName();
+                if (newVal.getCategory().equals("Récoltes")) {
+                    itemName = itemName + "_recolte";
+                }
+
+                selectedItemType = itemName;
                 selectedAction = determineAction(selectedItemType);
-                selectedItemLabel.setText("Sélectionné: " + selectedItemType);
+                selectedItemLabel.setText("Sélectionné: " + newVal.getName() + " (" +
+                        newVal.getQuantity() + " unités à " + newVal.getValue() + "€)");
                 LOGGER.info("Élément sélectionné: " + selectedItemType);
             }
         });
@@ -275,7 +321,7 @@ public class FieldController {
     private boolean isAnimalType(String type) {
         return type.equalsIgnoreCase("vache") ||
                 type.equalsIgnoreCase("poule") ||
-                type.equalsIgnoreCase("cochon");
+                type.equalsIgnoreCase("mouton");  // Remplacé "cochon" par "mouton"
     }
 
     private void handleCellClick(int row, int col, Button cellButton) {
@@ -404,8 +450,9 @@ public class FieldController {
 
     private void setupGameLoop() {
         Timeline gameLoop = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            LOGGER.info("Mise à jour du terrain à " + System.currentTimeMillis());
             updateFieldDisplay();
+            updateGrowthStages();
+            updateAnimals(); // Ajouter cette ligne pour mettre à jour les animaux
         }));
         gameLoop.setCycleCount(Timeline.INDEFINITE);
         gameLoop.play();
@@ -482,11 +529,11 @@ public class FieldController {
     private Animal createAnimal(String type) {
         switch (type.toLowerCase()) {
             case "vache":
-                return new Animal("Vache"); // Utilisez le constructeur disponible
+                return new Animal("Vache");
             case "poule":
                 return new Animal("Poule");
-            case "cochon":
-                return new Animal("Cochon");
+            case "mouton":
+                return new Animal("Mouton");
             default:
                 return null;
         }
@@ -607,11 +654,18 @@ public class FieldController {
     }
 
     @FXML
-    private void selectPig() {
-        selectedItemType = "cochon";
+    private void selectSheep() {
+        selectedItemType = "mouton";
         selectedAction = "place";
-        selectedItemLabel.setText("Sélectionné: Cochon");
-        LOGGER.info("Cochon sélectionné pour placement");
+        selectedItemLabel.setText("Sélectionné: Mouton");
+        LOGGER.info("Mouton sélectionné pour placement");
+    }
+
+    private long lastUpdateTime = System.currentTimeMillis();
+
+    public void resetTimer() {
+        // Réinitialiser le compteur de temps pour la mise à jour des animaux et cultures
+        lastUpdateTime = System.currentTimeMillis();
     }
 
 }

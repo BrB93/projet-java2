@@ -117,11 +117,11 @@ public class StoreController {
     }
 
     /**
-     * Achète un cochon
+     * Achète un mouton
      */
     @FXML
-    private void buyPig() {
-        buyAnimal("cochon", 150.0);
+    private void buySheep() {
+        buyAnimal("mouton", 150.0);
     }
 
     /**

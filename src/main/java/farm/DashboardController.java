@@ -10,6 +10,8 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.Map;
+import java.util.Arrays;
 
 public class DashboardController {
     private static final Logger LOGGER = Logger.getLogger(DashboardController.class.getName());
@@ -77,6 +79,12 @@ public class DashboardController {
     /**
      * Rafraîchit toutes les données affichées dans le tableau de bord
      */
+    private void updateResourcesDisplay() {
+        if (farm != null) {
+            updateResources(farm);
+        }
+    }
+
     public void refresh() {
         if (farm == null) {
             LOGGER.warning("Tentative de rafraîchir avec farm null");
@@ -142,26 +150,49 @@ public class DashboardController {
     /**
      * Met à jour l'affichage des ressources dans la grille
      */
-    private void updateResourcesDisplay() {
-        if (resourcesGrid == null) return;
+    public void updateResources(Farm farm) {
+        if (farm == null || resourcesGrid == null) return;
 
-        // Nettoyer la grille existante
+        // Vider la grille actuelle
         resourcesGrid.getChildren().clear();
 
-        // Si la ferme possède des ressources, les afficher
-        if (farm != null && farm.getResources() != null) {
-            int row = 0;
-            for (String resourceName : farm.getResources().keySet()) {
-                int quantity = farm.getResources().get(resourceName);
+        Map<String, Integer> inventory = farm.getInventory();
+        if (inventory == null) return;
 
-                Label nameLabel = new Label(resourceName);
-                Label quantityLabel = new Label(String.valueOf(quantity));
+        int row = 0;
 
+        // Afficher les productions animales
+        for (String type : Arrays.asList("oeuf", "lait", "laine")) {
+            if (inventory.containsKey(type) && inventory.get(type) > 0) {
+                Label nameLabel = new Label(type + ":");
+                nameLabel.getStyleClass().add("resource-name");
+                Label quantityLabel = new Label(inventory.get(type).toString());
+                quantityLabel.getStyleClass().add("resource-quantity");
                 resourcesGrid.add(nameLabel, 0, row);
                 resourcesGrid.add(quantityLabel, 1, row);
-
                 row++;
             }
+        }
+
+        // Afficher les récoltes
+        for (String type : Arrays.asList("ble_recolte", "mais_recolte", "carotte_recolte")) {
+            if (inventory.containsKey(type) && inventory.get(type) > 0) {
+                String displayName = type.replace("_recolte", "");
+                Label nameLabel = new Label(displayName + ":");
+                nameLabel.getStyleClass().add("resource-name");
+                Label quantityLabel = new Label(inventory.get(type).toString());
+                quantityLabel.getStyleClass().add("resource-quantity");
+                resourcesGrid.add(nameLabel, 0, row);
+                resourcesGrid.add(quantityLabel, 1, row);
+                row++;
+            }
+        }
+
+        // Ajouter une ligne indiquant l'absence de ressources si nécessaire
+        if (row == 0) {
+            Label emptyLabel = new Label("Aucune ressource disponible");
+            emptyLabel.getStyleClass().add("empty-resource");
+            resourcesGrid.add(emptyLabel, 0, 0, 2, 1);
         }
     }
 
@@ -201,6 +232,5 @@ public class DashboardController {
             if (resourcesGrid != null) resourcesGrid.getChildren().clear();
         });
     }
-
 
 }

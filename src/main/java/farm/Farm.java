@@ -33,6 +33,21 @@ public class Farm implements Serializable {
         LOGGER.info("Nouvelle ferme créée : " + name + ", taille: " + size + " hectares");
     }
 
+    private long elapsedTime = 0; // Temps écoulé en millisecondes
+
+    public long getElapsedTime() {
+        return elapsedTime;
+    }
+
+    public void setElapsedTime(long elapsedTime) {
+        this.elapsedTime = elapsedTime;
+    }
+
+    // Méthode pour mettre à jour le temps écoulé
+    public void updateElapsedTime(long additionalTime) {
+        this.elapsedTime += additionalTime;
+    }
+
     // Getters et setters
     public String getName() {
         return name;

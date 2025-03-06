@@ -15,7 +15,7 @@
     <Label text="Animaux"/>
     <Button text="Poule (50€)" onAction="#buyChicken"/>
     <Button text="Vache (200€)" onAction="#buyCow"/>
-    <Button text="Cochon (150€)" onAction="#buyPig"/>
+    <Button text="Mouton (150€)" onAction="#buySheep"/>
 
     <Label fx:id="messageLabel" text=""/>
 </VBox>

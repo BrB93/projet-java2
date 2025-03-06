@@ -1,0 +1,64 @@
+{
+  "name": "Ma ferme",
+  "size": 5,
+  "money": 567,
+  "inventory": {
+    "poule": 0,
+    "mouton": 0,
+    "carotte": 15,
+    "vache": 0,
+    "ble": 20,
+    "mais": 25
+  },
+  "resources": {
+    "lait": 1,
+    "oeuf": 7,
+    "laine": 1
+  },
+  "plantedCrops": [],
+  "animals": [
+    {
+      "type": "mouton",
+      "price": 150,
+      "productionAmount": 25,
+      "productionInterval": 40,
+      "productionCycle": 0,
+      "position": "3,0",
+      "lastProductionTime": 1741250049354,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741250014352,
+      "timeToNextStage": 5000,
+      "maturationTime": 10
+    },
+    {
+      "type": "vache",
+      "price": 200,
+      "productionAmount": 20,
+      "productionInterval": 30,
+      "productionCycle": 0,
+      "position": "3,1",
+      "lastProductionTime": 1741250040347,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741250015357,
+      "timeToNextStage": 5000,
+      "maturationTime": 10
+    },
+    {
+      "type": "poule",
+      "price": 50,
+      "productionAmount": 5,
+      "productionInterval": 15,
+      "productionCycle": 0,
+      "position": "3,2",
+      "lastProductionTime": 1741250057466,
+      "isProducing": true,
+      "developmentStage": 2,
+      "birthTime": 1741250017355,
+      "timeToNextStage": 5000,
+      "maturationTime": 10
+    }
+  ],
+  "elapsedTime": 68000
+}

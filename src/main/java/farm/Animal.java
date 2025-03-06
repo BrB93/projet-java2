@@ -35,6 +35,18 @@ public class Animal implements Serializable {
         calculateTimeToNextStage();
     }
 
+    // Dans la classe Animal
+    public String produce() {
+        if (type.equalsIgnoreCase("Poule")) {
+            return "oeuf";
+        } else if (type.equalsIgnoreCase("Vache")) {
+            return "lait";
+        } else if (type.equalsIgnoreCase("Mouton")) {
+            return "laine";
+        }
+        return null;
+    }
+
     /**
      * Constructeur complet avec tous les paramètres
      */
@@ -91,6 +103,14 @@ public class Animal implements Serializable {
         timeToNextStage = maturationTime / 2 * 1000; // Convertir en millisecondes
     }
 
+    public void produceResource(Farm farm) {
+        String resourceType = this.produce();
+        if (resourceType != null && farm != null) {
+            // Ajouter la ressource à l'inventaire de la ferme
+            farm.addResource(resourceType, 1);
+            LOGGER.info("L'animal " + this.type + " a produit: " + resourceType);
+        }
+    }
     public void updateDevelopmentStage() {
         long currentTime = System.currentTimeMillis();
         long elapsedTime = currentTime - birthTime;
@@ -160,17 +180,26 @@ public class Animal implements Serializable {
         return 0;
     }
 
+    public boolean canProduce() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastProductionTime >= productionInterval * 1000) { // Convertir en millisecondes
+            lastProductionTime = currentTime;
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Détermine le type de ressource produite par l'animal
      */
     public String getProductionType() {
         switch(type) {
             case "poule":
-                return "œuf";
+                return "oeuf";  // Assurez-vous de ne pas utiliser "œuf" avec accent
             case "vache":
                 return "lait";
-            case "mouton":  // Changé de "cochon" à "mouton"
-                return "laine";  // Changé de "viande" à "laine" pour correspondre à un mouton
+            case "mouton":
+                return "laine";
             default:
                 return "ressource";
         }
