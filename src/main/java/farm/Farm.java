@@ -203,11 +203,38 @@ public class Farm implements Serializable {
             int profit = amount * pricePerUnit;
             addMoney(profit);
 
-            LOGGER.info("Vente réussie: " + amount + " " + resource + "(s) pour " + profit + "€");
+            // Message adapté selon le type de ressource
+            String resourceDisplay = getResourceDisplayName(resource, amount);
+            LOGGER.info("Vente réussie: " + amount + " " + resourceDisplay + " pour " + profit + "€");
             return true;
         } else {
             LOGGER.info("Stock insuffisant pour vendre " + amount + " " + resource + "(s)");
             return false;
+        }
+    }
+
+    /**
+     * Retourne un nom plus descriptif pour l'affichage des ressources
+     * @param resource le type de ressource
+     * @param amount la quantité (pour gérer le pluriel)
+     * @return le nom formaté pour affichage
+     */
+    private String getResourceDisplayName(String resource, int amount) {
+        switch (resource.toLowerCase()) {
+            case "oeuf":
+                return amount > 1 ? "œufs" : "œuf";
+            case "lait":
+                return "litre" + (amount > 1 ? "s" : "") + " de lait";
+            case "laine":
+                return "ballot" + (amount > 1 ? "s" : "") + " de laine";
+            case "ble":
+                return "sac" + (amount > 1 ? "s" : "") + " de blé";
+            case "mais":
+                return "épi" + (amount > 1 ? "s" : "") + " de maïs";
+            case "carotte":
+                return "carotte" + (amount > 1 ? "s" : "");
+            default:
+                return resource + (amount > 1 ? "s" : "");
         }
     }
 

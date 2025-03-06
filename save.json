@@ -1,33 +1,35 @@
 {
   "name": "Ma ferme",
   "size": 5,
-  "money": 567,
+  "money": 1608,
   "inventory": {
     "poule": 0,
+    "lait": 39,
     "mouton": 0,
     "carotte": 15,
+    "oeuf": 13,
+    "laine": 18,
     "vache": 0,
     "ble": 20,
     "mais": 25
   },
   "resources": {
-    "lait": 1,
-    "oeuf": 7,
-    "laine": 1
+    "lait": 400,
+    "laine": 700
   },
   "plantedCrops": [],
   "animals": [
     {
-      "type": "mouton",
-      "price": 150,
-      "productionAmount": 25,
-      "productionInterval": 40,
+      "type": "poule",
+      "price": 50,
+      "productionAmount": 5,
+      "productionInterval": 15,
       "productionCycle": 0,
-      "position": "3,0",
-      "lastProductionTime": 1741250049354,
+      "position": "0,0",
+      "lastProductionTime": 1741258825345,
       "isProducing": true,
       "developmentStage": 2,
-      "birthTime": 1741250014352,
+      "birthTime": 1741257887345,
       "timeToNextStage": 5000,
       "maturationTime": 10
     },
@@ -37,28 +39,28 @@
       "productionAmount": 20,
       "productionInterval": 30,
       "productionCycle": 0,
-      "position": "3,1",
-      "lastProductionTime": 1741250040347,
+      "position": "1,0",
+      "lastProductionTime": 1741258818338,
       "isProducing": true,
       "developmentStage": 2,
-      "birthTime": 1741250015357,
+      "birthTime": 1741257888337,
       "timeToNextStage": 5000,
       "maturationTime": 10
     },
     {
-      "type": "poule",
-      "price": 50,
-      "productionAmount": 5,
-      "productionInterval": 15,
+      "type": "mouton",
+      "price": 150,
+      "productionAmount": 25,
+      "productionInterval": 40,
       "productionCycle": 0,
-      "position": "3,2",
-      "lastProductionTime": 1741250057466,
+      "position": "2,0",
+      "lastProductionTime": 1741258811697,
       "isProducing": true,
       "developmentStage": 2,
-      "birthTime": 1741250017355,
+      "birthTime": 1741257889699,
       "timeToNextStage": 5000,
       "maturationTime": 10
     }
   ],
-  "elapsedTime": 68000
+  "elapsedTime": 953000
 }

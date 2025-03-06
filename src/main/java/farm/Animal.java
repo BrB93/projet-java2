@@ -184,7 +184,7 @@ public class Animal implements Serializable {
         }
 
         long currentTime = System.currentTimeMillis();
-        long elapsedSeconds = (currentTime - lastProductionTime) / 1000;
+        long elapsedSeconds = (currentTime - lastProductionTime) / 500;
 
         if (elapsedSeconds >= productionInterval) {
             lastProductionTime = currentTime;
@@ -201,7 +201,7 @@ public class Animal implements Serializable {
 
     public boolean canProduce() {
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastProductionTime >= productionInterval * 1000) { // Convertir en millisecondes
+        if (currentTime - lastProductionTime >= productionInterval * 500) { // Convertir en millisecondes
             lastProductionTime = currentTime;
             return true;
         }

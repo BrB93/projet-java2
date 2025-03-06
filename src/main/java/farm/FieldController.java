@@ -18,6 +18,12 @@ import javafx.scene.effect.Glow;import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.util.Arrays;
 import java.util.List;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.geometry.Insets;
+import javafx.util.Pair;
+import java.util.Map;
+import java.util.Optional;
 
 
 import java.util.Map;
@@ -65,9 +71,6 @@ public class FieldController {
     private void initialize() {
         // Initialisation de la grille
         setupFieldGrid();
-
-        // Configuration des colonnes
-        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         itemColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
@@ -75,6 +78,9 @@ public class FieldController {
         // Configuration de l'inventaire
         setupInventoryTable();
 
+
+        // Configuration des colonnes
+        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         // Configuration de la boucle de jeu
         setupGameLoop();
 
@@ -83,17 +89,184 @@ public class FieldController {
 
     @FXML
     private void handleSellButtonClick() {
-        if (selectedItemType == null || selectedItemType.isEmpty()) {
-            selectedItemLabel.setText("Sélectionnez un article à vendre !");
+        // Créer la boîte de dialogue
+        Dialog<Pair<String, Integer>> dialog = new Dialog<>();
+        dialog.setTitle("Vendre des produits");
+        dialog.setHeaderText("Choisissez un produit à vendre");
+
+        // Boutons
+        ButtonType buttonTypeOk = new ButtonType("Vendre", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(buttonTypeOk, ButtonType.CANCEL);
+
+        // Grille pour le contenu
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        // Debug: Afficher le contenu complet de l'inventaire
+        Map<String, Integer> inventory = farm.getInventory();
+        LOGGER.info("=== CONTENU COMPLET DE L'INVENTAIRE ===");
+        inventory.forEach((key, value) -> LOGGER.info(key + ": " + value));
+
+        // Liste des produits avec ComboBox
+        ComboBox<String> productComboBox = new ComboBox<>();
+
+        // Ajouter les productions animales
+        addProductIfAvailable(inventory, productComboBox, "oeuf");
+        addProductIfAvailable(inventory, productComboBox, "lait");
+        addProductIfAvailable(inventory, productComboBox, "laine");
+
+        // Ajouter les récoltes
+        addProductIfAvailable(inventory, productComboBox, "ble_recolte");
+        addProductIfAvailable(inventory, productComboBox, "mais_recolte");
+        addProductIfAvailable(inventory, productComboBox, "carotte_recolte");
+
+        // Ajouter les graines
+        addProductIfAvailable(inventory, productComboBox, "ble");
+        addProductIfAvailable(inventory, productComboBox, "mais");
+        addProductIfAvailable(inventory, productComboBox, "carotte");
+
+
+        LOGGER.info("Produits disponibles à la vente: " + productComboBox.getItems());
+
+        if (productComboBox.getItems().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText(null);
+            alert.setContentText("Aucun produit disponible à vendre.");
+            alert.showAndWait();
             return;
         }
 
-        selectedItemToSell = selectedItemType;
-        showSellDialog();
+        // Spinner pour la quantité
+        SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 1, 1);
+        Spinner<Integer> quantitySpinner = new Spinner<>();
+        quantitySpinner.setValueFactory(valueFactory);
 
-        // Notifier le contrôleur principal de mettre à jour le tableau de bord
-        if (mainController != null) {
-            mainController.updateDashboard();
+        // Label pour afficher le prix
+        Label priceLabel = new Label();
+
+        // Initialisation des valeurs
+        productComboBox.getSelectionModel().selectFirst();
+        String initialProduct = productComboBox.getValue();
+        int initialMaxQuantity = getMaxQuantity(initialProduct, inventory);
+        valueFactory.setMax(initialMaxQuantity);
+        updatePriceLabel(priceLabel, initialProduct);
+
+        // Gestionnaire d'événements unique pour la ComboBox
+        productComboBox.setOnAction(e -> {
+            String selectedProduct = productComboBox.getValue();
+            int maxQuantity = getMaxQuantity(selectedProduct, inventory);
+            valueFactory.setMax(maxQuantity);
+            valueFactory.setValue(1);
+            updatePriceLabel(priceLabel, selectedProduct);
+        });
+
+        // Construction de l'interface
+        grid.add(new Label("Produit:"), 0, 0);
+        grid.add(productComboBox, 1, 0);
+        grid.add(new Label("Quantité:"), 0, 1);
+        grid.add(quantitySpinner, 1, 1);
+        grid.add(new Label("Prix unitaire:"), 0, 2);
+        grid.add(priceLabel, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Conversion du résultat
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == buttonTypeOk) {
+                return new Pair<>(productComboBox.getValue(), quantitySpinner.getValue());
+            }
+            return null;
+        });
+
+        // Traitement du résultat
+        Optional<Pair<String, Integer>> result = dialog.showAndWait();
+        result.ifPresent(productQuantity -> {
+            String product = productQuantity.getKey();
+            int quantity = productQuantity.getValue();
+            int pricePerUnit = getPriceForItem(product);
+
+            LOGGER.info("Tentative de vente: " + product + " x" + quantity + " à " + pricePerUnit + "€/unité");
+
+            boolean success = farm.sellResource(product, quantity, pricePerUnit);
+            if (success) {
+                updateUI();
+
+                String displayName = getResourceDisplayName(product, quantity);
+                int totalPrice = quantity * pricePerUnit;
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Vente réussie");
+                alert.setHeaderText(null);
+                alert.setContentText("Vous avez vendu " + quantity + " " + displayName + " pour " + totalPrice + " €");
+                alert.showAndWait();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Échec de la vente");
+                alert.setHeaderText(null);
+                alert.setContentText("La vente a échoué. Vérifiez votre inventaire.");
+                alert.showAndWait();
+            }
+        });
+    }
+
+    private void addProductIfAvailable(Map<String, Integer> inventory, ComboBox<String> comboBox, String productKey) {
+        if (inventory.containsKey(productKey) && inventory.get(productKey) > 0) {
+            comboBox.getItems().add(productKey);
+        }
+    }
+
+    private void updatePriceLabel(Label priceLabel, String product) {
+        int price = getPriceForItem(product);
+        priceLabel.setText(price + " €");
+    }
+
+    private int getPriceForItem(String product) {
+        if (product.equals("oeuf")) return getPriceForProduct("oeuf");
+        if (product.equals("lait")) return getPriceForProduct("lait");
+        if (product.equals("laine")) return getPriceForProduct("laine");
+        if (product.equals("ble_recolte")) return getPriceForCrop("ble_recolte");
+        if (product.equals("mais_recolte")) return getPriceForCrop("mais_recolte");
+        if (product.equals("carotte_recolte")) return getPriceForCrop("carotte_recolte");
+        // Ajouter les graines
+        if (product.equals("ble")) return getPriceForSeed("ble");
+        if (product.equals("mais")) return getPriceForSeed("mais");
+        if (product.equals("carotte")) return getPriceForSeed("carotte");
+        return 0;
+    }
+
+    private String getResourceDisplayName(String resource, int amount) {
+        switch (resource) {
+            case "oeuf":
+                return amount > 1 ? "œufs" : "œuf";
+            case "lait":
+                return "litre" + (amount > 1 ? "s" : "") + " de lait";
+            case "laine":
+                return "ballot" + (amount > 1 ? "s" : "") + " de laine";
+            case "ble_recolte":
+                return "sac" + (amount > 1 ? "s" : "") + " de blé";
+            case "mais_recolte":
+                return "épi" + (amount > 1 ? "s" : "") + " de maïs";
+            case "carotte_recolte":
+                return "carotte" + (amount > 1 ? "s" : "");
+            default:
+                return resource;
+        }
+    }
+
+    private int getMaxQuantity(String product, Map<String, Integer> inventory) {
+        return inventory.getOrDefault(product, 0);
+    }
+
+    private void updateUI() {
+        // Mettre à jour l'affichage de l'inventaire et du solde
+        updateInventoryDisplay();
+
+        // Mise à jour de l'affichage du solde
+        if (balanceLabel != null) {
+            balanceLabel.setText("Solde: " + farm.getMoney() + " €");
         }
     }
 
