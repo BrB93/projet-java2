@@ -15,19 +15,12 @@ import javafx.util.Duration;
 import javafx.scene.control.Tooltip;
 import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
-
 import java.util.*;
-
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.geometry.Insets;
 import javafx.util.Pair;
-
 import java.util.List;
-
-import javafx.scene.control.Tooltip;
-
-
 import java.util.logging.Logger;
 
 public class FieldController {
@@ -59,77 +52,45 @@ public class FieldController {
     private Farm farm;
     private String selectedItemType;
     private String selectedAction;
-
-    // Référence au MainController
     private MainController mainController;
-
     public void setMainController(MainController controller) {
         this.mainController = controller;
     }
 
-
     @FXML
     private void initialize() {
-        // Initialisation de la grille
         setupFieldGrid();
         itemColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
-
-        // Configuration de l'inventaire
         setupInventoryTable();
-
-
-        // Configuration des colonnes
         categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
-        // Configuration de la boucle de jeu
         setupGameLoop();
-
         updateInventoryDisplay();
     }
 
     @FXML
     private void handleSellButtonClick() {
-        // Créer la boîte de dialogue
         Dialog<Pair<String, Integer>> dialog = new Dialog<>();
         dialog.setTitle("Vendre des produits");
         dialog.setHeaderText("Choisissez un produit à vendre");
-
-        // Boutons
         ButtonType buttonTypeOk = new ButtonType("Vendre", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(buttonTypeOk, ButtonType.CANCEL);
-
-        // Grille pour le contenu
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
-
-        // Debug: Afficher le contenu complet de l'inventaire
         Map<String, Integer> inventory = farm.getInventory();
-        LOGGER.info("=== CONTENU COMPLET DE L'INVENTAIRE ===");
-        inventory.forEach((key, value) -> LOGGER.info(key + ": " + value));
-
-        // Liste des produits avec ComboBox
         ComboBox<String> productComboBox = new ComboBox<>();
-
-        // Ajouter les productions animales
         addProductIfAvailable(inventory, productComboBox, "oeuf");
         addProductIfAvailable(inventory, productComboBox, "lait");
         addProductIfAvailable(inventory, productComboBox, "laine");
-
-        // Ajouter les récoltes
         addProductIfAvailable(inventory, productComboBox, "ble_recolte");
         addProductIfAvailable(inventory, productComboBox, "mais_recolte");
         addProductIfAvailable(inventory, productComboBox, "carotte_recolte");
-
-        // Ajouter les graines
         addProductIfAvailable(inventory, productComboBox, "ble");
         addProductIfAvailable(inventory, productComboBox, "mais");
         addProductIfAvailable(inventory, productComboBox, "carotte");
-
-
-        LOGGER.info("Produits disponibles à la vente: " + productComboBox.getItems());
 
         if (productComboBox.getItems().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -140,22 +101,16 @@ public class FieldController {
             return;
         }
 
-        // Spinner pour la quantité
         SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 1, 1);
         Spinner<Integer> quantitySpinner = new Spinner<>();
         quantitySpinner.setValueFactory(valueFactory);
 
-        // Label pour afficher le prix
         Label priceLabel = new Label();
-
-        // Initialisation des valeurs
         productComboBox.getSelectionModel().selectFirst();
         String initialProduct = productComboBox.getValue();
         int initialMaxQuantity = getMaxQuantity(initialProduct, inventory);
         valueFactory.setMax(initialMaxQuantity);
         updatePriceLabel(priceLabel, initialProduct);
-
-        // Gestionnaire d'événements unique pour la ComboBox
         productComboBox.setOnAction(e -> {
             String selectedProduct = productComboBox.getValue();
             int maxQuantity = getMaxQuantity(selectedProduct, inventory);
@@ -163,8 +118,6 @@ public class FieldController {
             valueFactory.setValue(1);
             updatePriceLabel(priceLabel, selectedProduct);
         });
-
-        // Construction de l'interface
         grid.add(new Label("Produit:"), 0, 0);
         grid.add(productComboBox, 1, 0);
         grid.add(new Label("Quantité:"), 0, 1);
@@ -174,7 +127,6 @@ public class FieldController {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Conversion du résultat
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == buttonTypeOk) {
                 return new Pair<>(productComboBox.getValue(), quantitySpinner.getValue());
@@ -182,14 +134,11 @@ public class FieldController {
             return null;
         });
 
-        // Traitement du résultat
         Optional<Pair<String, Integer>> result = dialog.showAndWait();
         result.ifPresent(productQuantity -> {
             String product = productQuantity.getKey();
             int quantity = productQuantity.getValue();
             int pricePerUnit = getPriceForItem(product);
-
-            LOGGER.info("Tentative de vente: " + product + " x" + quantity + " à " + pricePerUnit + "€/unité");
 
             boolean success = farm.sellResource(product, quantity, pricePerUnit);
             if (success) {
@@ -260,10 +209,7 @@ public class FieldController {
     }
 
     private void updateUI() {
-        // Mettre à jour l'affichage de l'inventaire et du solde
         updateInventoryDisplay();
-
-        // Mise à jour de l'affichage du solde
         if (balanceLabel != null) {
             balanceLabel.setText("Solde: " + farm.getMoney() + " €");
         }
@@ -304,17 +250,12 @@ public class FieldController {
 
         Map<String, Integer> inventory = farm.getInventory();
         ObservableList<InventoryItem> items = FXCollections.observableArrayList();
-
-
-        // Corriger pour les animaux (ligne 311)
         for (String type : Arrays.asList("poule", "vache", "mouton")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 items.add(new InventoryItem("Animaux", type,
                         inventory.get(type), getPrice(type, "animal")));
             }
         }
-
-        // Corriger pour les graines (ligne 319)
         for (String type : Arrays.asList("ble", "mais", "carotte")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 items.add(new InventoryItem("Graines", type,
@@ -322,7 +263,6 @@ public class FieldController {
             }
         }
 
-        // Corriger pour les récoltes (ligne 328)
         for (String type : Arrays.asList("ble_recolte", "mais_recolte", "carotte_recolte")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 String displayName = type.replace("_recolte", "");
@@ -330,8 +270,6 @@ public class FieldController {
                         inventory.get(type), getPrice(type, "crop")));
             }
         }
-
-        // Corriger pour les productions animales (ligne 338)
         for (String type : Arrays.asList("oeuf", "lait", "laine")) {
             if (inventory.containsKey(type) && inventory.get(type) > 0) {
                 String category = "Productions";
@@ -342,15 +280,10 @@ public class FieldController {
                 items.add(new InventoryItem(category, displayName, quantity, value));
             }
         }
-
         inventoryTableView.setItems(items);
-
-        // Mise à jour de l'affichage du solde
         if (balanceLabel != null) {
             balanceLabel.setText("Solde: " + farm.getMoney() + " €");        }
     }
-
-    // Méthodes auxiliaires pour obtenir les prix
     private int getPrice(String item, String category) {
         switch(category) {
             case "seed":
@@ -430,9 +363,6 @@ public class FieldController {
             }
         }
     }
-
-
-
     private Button createCellButton(int row, int col) {
         Button cellButton = new Button();
         cellButton.setPrefSize(100, 100);
@@ -447,18 +377,13 @@ public class FieldController {
             LOGGER.warning("inventoryTableView est null");
             return;
         }
-
-        // Configuration des colonnes du tableau d'inventaire
         itemColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getName()));
 
         quantityColumn.setCellValueFactory(cellData ->
                 new SimpleIntegerProperty(cellData.getValue().getQuantity()).asObject());
-
-        // Ajout d'un gestionnaire de sélection
         inventoryTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                // Utiliser le nom d'origine pour les récoltes
                 String itemName = newVal.getName();
                 if (newVal.getCategory().equals("Récoltes")) {
                     itemName = itemName + "_recolte";
@@ -468,7 +393,6 @@ public class FieldController {
                 selectedAction = determineAction(selectedItemType);
                 selectedItemLabel.setText("Sélectionné: " + newVal.getName() + " (" +
                         newVal.getQuantity() + " unités à " + newVal.getValue() + "€)");
-                LOGGER.info("Élément sélectionné: " + selectedItemType);
             }
         });
     }
@@ -486,7 +410,7 @@ public class FieldController {
     private boolean isAnimalType(String type) {
         return type.equalsIgnoreCase("vache") ||
                 type.equalsIgnoreCase("poule") ||
-                type.equalsIgnoreCase("mouton");  // Remplacé "cochon" par "mouton"
+                type.equalsIgnoreCase("mouton");
     }
 
     private void handleCellClick(int row, int col, Button cellButton) {
@@ -495,8 +419,6 @@ public class FieldController {
         }
 
         String position = row + "," + col;
-
-        // Vérifier si une culture est prête à être récoltée à cette position
         Crop cropToHarvest = farm.getPlantedCrops().stream()
                 .filter(crop -> crop.getPosition().equals(position) && crop.isReadyToHarvest())
                 .findFirst()
@@ -511,21 +433,15 @@ public class FieldController {
             feedAnimalAt(row, col);
             return;
         }
-
-        // Si aucune culture prête à récolter, continuer avec le comportement existant
         if (selectedItemType == null || selectedItemType.isEmpty()) {
             return;
         }
-
-        // Vérification si la case est déjà occupée
         if (!cellButton.getText().isEmpty()) {
             if (selectedItemLabel != null) {
                 selectedItemLabel.setText("Case déjà occupée !");
             }
-            LOGGER.warning("Tentative de placement sur case occupée en " + row + "," + col);
             return;
         }
-
         if ("plant".equals(selectedAction) && farm.getInventory().containsKey(selectedItemType)) {
             placeCrop(selectedItemType, row, col, cellButton);
         } else if ("place".equals(selectedAction) && hasAnimalInInventory(selectedItemType)) {
@@ -548,11 +464,8 @@ public class FieldController {
             selectedItemLabel.setText("Aucun animal à cette position");
             return;
         }
-        // Déterminer le type de nourriture
         String foodType = animal.getType().equals("poule") ? "mais" :
                 (animal.getType().equals("vache") ? "ble" : "carotte");
-
-        // Vérifier l'inventaire
         if (farm.getInventory().getOrDefault(foodType, 0) > 0) {
             farm.getInventory().put(foodType, farm.getInventory().get(foodType) - 1);
             animal.feed();
@@ -583,7 +496,6 @@ public class FieldController {
                 "crop-cell", crop.getStageStyleClass());
 
         updateInventoryDisplay();
-        LOGGER.info("Culture " + cropType + " placée en " + row + "," + col);
     }
     private void harvestCrop(Crop cropToHarvest, Button cellButton) {
         farm.addToInventory(cropToHarvest.getType(), cropToHarvest.getYield());
@@ -602,13 +514,9 @@ public class FieldController {
         animal.setPosition(row + "," + col);
         farm.getInventory().put(animalType, farm.getInventory().getOrDefault(animalType, 1) - 1);
         farm.getAnimals().add(animal);
-
-        // Utiliser la nouvelle méthode d'affichage
         updateCellWithStage(cellButton, animalType, animal.getDisplayText(),
                 "animal-cell", animal.getStageStyleClass());
-
         updateInventoryDisplay();
-        LOGGER.info("Animal " + animalType + " placé en " + row + "," + col);
     }
 
     private boolean hasAnimalInInventory(String animalType) {
@@ -640,8 +548,8 @@ public class FieldController {
         Timeline gameLoop = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             updateFieldDisplay();
             updateGrowthStages();
-            updateAnimals(); // Mise à jour des animaux
-            checkAnimalStatus(); // Vérification et affichage des notifications de faim
+            updateAnimals();
+            checkAnimalStatus();
         }));
         gameLoop.setCycleCount(Timeline.INDEFINITE);
         gameLoop.play();
@@ -662,11 +570,7 @@ public class FieldController {
 
     private void updateFieldDisplay() {
         if (farm == null) return;
-
-        // Nettoyer d'abord le terrain
         clearField();
-
-        // Mettre à jour les cultures
         for (Crop crop : farm.getPlantedCrops()) {
             crop.updateGrowthStage();
             String position = crop.getPosition();
@@ -717,10 +621,7 @@ public class FieldController {
 
     private void updateCellWithStage(Button cellButton, String type, String text,
                                      String baseStyle, String stageStyle) {
-        // Texte de base avec emoji
         String displayText = text;
-
-        // Ajout d'émojis pour les plantes selon leur stade
         if (baseStyle.equals("crop-cell")) {
             if (stageStyle.contains("seed-stage")) {
                 displayText = "🌱\n" + text;
@@ -736,8 +637,6 @@ public class FieldController {
                 }
             }
         }
-
-        // Ajout d'émojis pour les animaux selon leur stade
         if (baseStyle.equals("animal-cell")) {
             if (type.equals("poule")) {
                 displayText = (stageStyle.contains("baby-stage")) ? "🐤\n" + text : "🐓\n" + text;
@@ -746,8 +645,6 @@ public class FieldController {
             } else if (type.equals("mouton")) {
                 displayText = (stageStyle.contains("baby-stage")) ? "🐑\n" + text : "🐏\n" + text;
             }
-
-            // Ajout d'indicateurs pour les animaux affamés
             Animal animal = getAnimalAtPosition(cellButton.getUserData().toString());
             if (animal != null) {
                 if (animal.isStarving()) {
@@ -764,11 +661,7 @@ public class FieldController {
         if (stageStyle != null && !stageStyle.isEmpty()) {
             cellButton.getStyleClass().add(stageStyle);
         }
-
-        // Message pour les tooltips
         String tooltipText = type + "\n" + text;
-
-        // Si c'est un animal, ajouter des informations de nourrissage détaillées
         if (baseStyle.equals("animal-cell")) {
             Animal animal = getAnimalAtPosition(cellButton.getUserData().toString());
             if (animal != null) {
@@ -803,8 +696,7 @@ public class FieldController {
         if (farm == null || farm.getPlantedCrops() == null) return;
 
         for (Crop crop : farm.getPlantedCrops()) {
-            crop.updateGrowthStage(); // Cette méthode retourne void, pas boolean
-            // Mettre à jour l'affichage de la cellule
+            crop.updateGrowthStage();
             updateCellDisplay(crop);
         }
     }
@@ -819,8 +711,6 @@ public class FieldController {
         try {
             int row = Integer.parseInt(coords[0]);
             int col = Integer.parseInt(coords[1]);
-
-            // Trouver le bouton dans la grille
             for (javafx.scene.Node node : fieldGrid.getChildren()) {
                 if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
                     if (node instanceof Button) {
@@ -832,7 +722,6 @@ public class FieldController {
                 }
             }
         } catch (NumberFormatException e) {
-            LOGGER.warning("Format de position invalide: " + position);
         }
     }
 
@@ -853,7 +742,6 @@ public class FieldController {
     private long lastUpdateTime = System.currentTimeMillis();
 
     public void resetTimer() {
-        // Réinitialiser le compteur de temps pour la mise à jour des animaux et cultures
         lastUpdateTime = System.currentTimeMillis();
     }
 
@@ -894,21 +782,14 @@ public class FieldController {
 
         for (Animal animal : farm.getAnimals()) {
             if (animal.isStarving()) {
-                // Marquer l'animal pour suppression
                 animalsToRemove.add(animal);
-
-                // Nettoyer sa cellule
                 String[] coords = animal.getPosition().split(",");
                 int row = Integer.parseInt(coords[0]);
                 int col = Integer.parseInt(coords[1]);
                 clearCell(row, col);
-
-                // Notification à l'utilisateur
                 selectedItemLabel.setText("Un " + animal.getType() + " est mort de faim à la position " + animal.getPosition());
             }
         }
-
-        // Supprimer les animaux morts
         farm.getAnimals().removeAll(animalsToRemove);
     }
 
@@ -927,7 +808,6 @@ public class FieldController {
     @FXML
     private Label notificationLabel;
 
-    // Méthode pour vérifier l'état des animaux à intervalles réguliers
     public void checkAnimalStatus() {
         if (farm == null || farm.getAnimals() == null || farm.getAnimals().isEmpty()) {
             notificationLabel.setText("");
@@ -956,8 +836,6 @@ public class FieldController {
         } catch (Exception e) {
             System.err.println("Erreur lors du chargement de la feuille de style : " + e.getMessage());
         }
-
-        // Configuration du minuteur pour vérifier l'état des animaux
         checkAnimalStatus();
     }
 
