@@ -18,10 +18,10 @@
         </MenuBar>
     </top>
     <center>
-        <VBox fx:id="centerVBox" alignment="CENTER" spacing="10">
+        <VBox fx:id="centerVBox" alignment="CENTER" spacing="2">
+            <Button text="Finances" onAction="#openFinanceView" />
             <Button fx:id="startButton" text="Nouvelle Partie" onAction="#handleNewGame"/>
             <Button text="Charger une partie" onAction="#handleLoad"/>
-            <Button text="Paramètres" onAction="#handleSettings"/>
         </VBox>
     </center>
     <right>

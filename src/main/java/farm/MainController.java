@@ -21,6 +21,9 @@ import java.nio.file.Paths;
 import java.io.IOException;
 import javafx.scene.control.Alert;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
 
 public class MainController {
     private static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
@@ -127,6 +130,7 @@ public class MainController {
 
     /**
      * Définit l'objet Farm et met à jour l'interface utilisateur
+     *
      * @param farm L'objet Farm à utiliser dans l'application
      */
     public void setFarm(Farm farm) {
@@ -203,9 +207,11 @@ public class MainController {
         pauseButton.setOnAction(e -> togglePause());
         Button saveButton = new Button("Sauvegarder");
         saveButton.setOnAction(e -> handleSave());
+        Button financeButton = new Button("Finances");
+        financeButton.setOnAction(e -> openFinanceView());
         HBox controlsBar = new HBox(10);
         controlsBar.setAlignment(javafx.geometry.Pos.CENTER);
-        controlsBar.getChildren().addAll(pauseButton, saveButton);
+        controlsBar.getChildren().addAll(pauseButton, saveButton, financeButton);
 
         gameBox.getChildren().addAll(statusBar, gameArea, controlsBar);
         return gameBox;
@@ -227,7 +233,6 @@ public class MainController {
 
         LOGGER.fine("Timer de jeu démarré");
     }
-
 
 
     private void togglePause() {
@@ -309,6 +314,7 @@ public class MainController {
             showAlert("Erreur", "Impossible de sauvegarder: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
+
     @FXML
     private void handleLoad() {
         try {
@@ -357,4 +363,22 @@ public class MainController {
         }
     }
 
+    @FXML
+    private void openFinanceView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/financeController.fxml"));
+            Parent root = loader.load();
+
+            // Récupérer le contrôleur et lui passer la ferme
+            FinanceController controller = loader.getController();
+            controller.setFarm(farm);
+
+            Stage stage = new Stage();
+            stage.setTitle("Gestion des Finances");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -37,28 +37,6 @@
             <!-- Groupe des actions principales -->
             <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10;">
                 <VBox spacing="5" alignment="CENTER">
-                    <Label text="Cultures" style="-fx-font-weight: bold;"/>
-                    <HBox spacing="5">
-                        <Button text="Blé" onAction="#selectWheat" focusTraversable="true"/>
-                        <Button text="Maïs" onAction="#selectCorn" focusTraversable="true"/>
-                        <Button text="Carotte" onAction="#selectCarrot" focusTraversable="true"/>
-                    </HBox>
-                </VBox>
-
-                <Separator orientation="VERTICAL"/>
-
-                <VBox spacing="5" alignment="CENTER">
-                    <Label text="Animaux" style="-fx-font-weight: bold;"/>
-                    <HBox spacing="5">
-                        <Button text="Poule" onAction="#selectChicken" focusTraversable="true"/>
-                        <Button text="Vache" onAction="#selectCow" focusTraversable="true"/>
-                        <Button text="Mouton" onAction="#selectSheep" focusTraversable="true"/>
-                    </HBox>
-                </VBox>
-
-                <Separator orientation="VERTICAL"/>
-
-                <VBox spacing="5" alignment="CENTER">
                     <Label text="Actions" style="-fx-font-weight: bold;"/>
                     <HBox spacing="5">
                         <Button fx:id="sellButton" text="Vendre" onAction="#handleSellButtonClick"

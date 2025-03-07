@@ -838,5 +838,4 @@ public class FieldController {
         }
         checkAnimalStatus();
     }
-
 }

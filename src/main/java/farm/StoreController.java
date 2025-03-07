@@ -46,10 +46,8 @@ public class StoreController {
             // Ajouter directement à l'inventaire
             farm.getInventory().put(type, farm.getInventory().getOrDefault(type, 0) + 1);
             messageLabel.setText("Achat de " + type + " réussi !");
-            LOGGER.info("Achat de " + type + " réussi");
         } else {
             messageLabel.setText("Pas assez d'argent !");
-            LOGGER.warning("Tentative d'achat de " + type + " sans argent suffisant");
         }
     }
 

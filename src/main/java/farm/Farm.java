@@ -10,18 +10,14 @@ public class Farm implements Serializable {
     private static final Logger LOGGER = Logger.getLogger(Farm.class.getName());
     private static final String SAVE_FILE_PATH = "farm_data.ser";
 
-    // Propriétés de base de la ferme
     private String name;
     private int size;
     private int money = 0;
     private Map<String, Integer> inventory;
     private Map<String, Integer> resources;
-
-    // Collections pour les cultures et les animaux
+    private FinanceManager financeManager;
     private List<Crop> plantedCrops;
     private List<Animal> animals;
-
-    // Constructeur principal
     public Farm(String name, int size) {
         this.name = name;
         this.size = size;
@@ -43,7 +39,6 @@ public class Farm implements Serializable {
         this.elapsedTime = elapsedTime;
     }
 
-    // Méthode pour mettre à jour le temps écoulé
     public void updateElapsedTime(long additionalTime) {
         this.elapsedTime += additionalTime;
     }
@@ -80,10 +75,24 @@ public class Farm implements Serializable {
     public void addMoney(int amount) {
         if (amount > 0) {
             this.money += amount;
+            if (financeManager != null) {
+                financeManager.addTransaction("Revenu", amount, FinanceManager.TransactionType.INCOME);
+            }
             LOGGER.info("Ajout de " + amount + "€ au solde. Nouveau solde: " + this.money + "€");
         } else {
             LOGGER.warning("Tentative d'ajouter un montant négatif: " + amount);
         }
+    }
+
+    public FinanceManager getFinanceManager() {
+        if (financeManager == null) {
+            financeManager = new FinanceManager();
+        }
+        return financeManager;
+    }
+
+    public void setFinanceManager(FinanceManager financeManager) {
+        this.financeManager = financeManager;
     }
 
     public boolean spendMoney(int amount) {
@@ -94,6 +103,9 @@ public class Farm implements Serializable {
 
         if (this.money >= amount) {
             this.money -= amount;
+            if (financeManager != null) {
+                financeManager.addTransaction("Dépense", amount, FinanceManager.TransactionType.EXPENSE);
+            }
             LOGGER.info("Dépense de " + amount + "€. Nouveau solde: " + this.money + "€");
             return true;
         } else {
