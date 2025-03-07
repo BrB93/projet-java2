@@ -739,7 +739,48 @@ public class FieldController {
 
     private void updateCellWithStage(Button cellButton, String type, String text,
                                      String baseStyle, String stageStyle) {
-        cellButton.setText(text);
+        // Texte de base avec emoji
+        String displayText = text;
+
+        // Ajout d'émojis pour les plantes selon leur stade
+        if (baseStyle.equals("crop-cell")) {
+            if (stageStyle.contains("seed-stage")) {
+                displayText = "🌱\n" + text;
+            } else if (stageStyle.contains("growing-stage")) {
+                displayText = "🌿\n" + text;
+            } else if (stageStyle.contains("ready-stage")) {
+                if (type.contains("ble")) {
+                    displayText = "🌾\n" + text;
+                } else if (type.contains("mais")) {
+                    displayText = "🌽\n" + text;
+                } else if (type.contains("carotte")) {
+                    displayText = "🥕\n" + text;
+                }
+            }
+        }
+
+        // Ajout d'émojis pour les animaux selon leur stade
+        if (baseStyle.equals("animal-cell")) {
+            if (type.equals("poule")) {
+                displayText = (stageStyle.contains("baby-stage")) ? "🐤\n" + text : "🐓\n" + text;
+            } else if (type.equals("vache")) {
+                displayText = (stageStyle.contains("baby-stage")) ? "🐄\n" + text : "🐮\n" + text;
+            } else if (type.equals("mouton")) {
+                displayText = (stageStyle.contains("baby-stage")) ? "🐑\n" + text : "🐏\n" + text;
+            }
+
+            // Ajout d'indicateurs pour les animaux affamés
+            Animal animal = getAnimalAtPosition(cellButton.getUserData().toString());
+            if (animal != null) {
+                if (animal.isStarving()) {
+                    displayText = "⚠️" + displayText;
+                } else if (animal.needsFeeding()) {
+                    displayText = "⚠️" + displayText;
+                }
+            }
+        }
+
+        cellButton.setText(displayText);
         cellButton.getStyleClass().removeAll("empty-cell", "crop-cell", "animal-cell");
         cellButton.getStyleClass().add(baseStyle);
 
@@ -747,19 +788,17 @@ public class FieldController {
             cellButton.getStyleClass().add(stageStyle);
         }
 
-        // Message pour les tooltips des animaux
+        // Message pour les tooltips
         String tooltipText = type + "\n" + text;
 
         // Si c'est un animal, ajouter des informations de nourrissage détaillées
         if (baseStyle.equals("animal-cell")) {
             Animal animal = getAnimalAtPosition(cellButton.getUserData().toString());
             if (animal != null) {
-                // Calculer le temps écoulé depuis le dernier repas
                 long currentTime = System.currentTimeMillis();
                 long timeSinceLastFeed = currentTime - animal.getLastFeedTime();
-                long secondsRemaining = 60 - (timeSinceLastFeed / 1000); // 60 secondes avant needsFeeding
+                long secondsRemaining = 60 - (timeSinceLastFeed / 1000);
 
-                // État de l'animal
                 if (animal.isStarving()) {
                     tooltipText += "\n⚠️ DANGER: Animal affamé!";
                     tooltipText += "\nVa mourir prochainement";
@@ -773,7 +812,6 @@ public class FieldController {
                     tooltipText += "\nA nourrir dans " + secondsRemaining + " secondes";
                 }
 
-                // Instructions de nourrissage
                 String foodType = animal.getType().equals("poule") ? "maïs" :
                         (animal.getType().equals("vache") ? "blé" : "carotte");
                 tooltipText += "\n\nNourriture: " + foodType;
@@ -921,10 +959,10 @@ public class FieldController {
         long starvingCount = farm.getAnimals().stream().filter(Animal::isStarving).count();
 
         if (starvingCount > 0) {
-            notificationLabel.setText("⚠️ URGENCE: " + starvingCount + " animal(aux) risque(nt) de mourir de faim!");
+            notificationLabel.setText("🚨 URGENCE: " + starvingCount + " animal(aux) risque(nt) de mourir de faim!");
             notificationLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-font-size: 14;");
         } else if (hungryCount > 0) {
-            notificationLabel.setText("⚠️ Attention: " + hungryCount + " animal(aux) ont besoin d'être nourri(s)!");
+            notificationLabel.setText("🔔 Attention: " + hungryCount + " animal(aux) ont besoin d'être nourri(s)!");
             notificationLabel.setStyle("-fx-text-fill: orange; -fx-font-weight: bold; -fx-font-size: 14;");
         } else {
             notificationLabel.setText("");
