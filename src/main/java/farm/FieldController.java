@@ -365,7 +365,7 @@ public class FieldController {
     }
     private Button createCellButton(int row, int col) {
         Button cellButton = new Button();
-        cellButton.setPrefSize(100, 100);
+        cellButton.setPrefSize(120, 120);
         cellButton.getStyleClass().add("empty-cell"); // Remplacer "field-cell" par "empty-cell"
         cellButton.setUserData(row + "," + col);
         cellButton.setOnAction(e -> handleCellClick(row, col, cellButton));
