@@ -384,15 +384,11 @@ public class FieldController {
             default: return 0;
         }
     }
-
-    // Cette méthode doit être appelée dans votre gameLoop
     private void updateAnimals() {
         if (farm == null) return;
 
         List<Animal> animals = farm.getAnimals();
         if (animals == null || animals.isEmpty()) return;
-
-        // Vérifier les animaux affamés et les supprimer
         animals.removeIf(animal -> {
             if (animal.isStarving()) {
                 // Récupérer la position pour nettoyer la cellule
@@ -400,24 +396,13 @@ public class FieldController {
                 String[] coords = position.split(",");
                 int row = Integer.parseInt(coords[0]);
                 int col = Integer.parseInt(coords[1]);
-
-                // Nettoyer la cellule
-                Button cellButton = getCellButton(row, col);
-                if (cellButton != null) {
-                    cellButton.setText("");
-                    cellButton.getStyleClass().removeAll("animal-cell",
-                            "baby-stage", "young-stage", "mature-stage", "hungry-animal");
-                    cellButton.getStyleClass().add("empty-cell");
-                    Tooltip.uninstall(cellButton, null);
-                }
+                clearCell(row, col);
 
                 selectedItemLabel.setText("Un animal est mort de faim à la position " + position);
-                return true; // Supprime l'animal de la liste
+                return true;
             }
             return false;
         });
-
-        // Code existant pour la production
         boolean productionMade = false;
         for (Animal animal : animals) {
             if (animal.canProduce()) {
@@ -600,23 +585,16 @@ public class FieldController {
         updateInventoryDisplay();
         LOGGER.info("Culture " + cropType + " placée en " + row + "," + col);
     }
-
     private void harvestCrop(Crop cropToHarvest, Button cellButton) {
-        // Ajouter le produit récolté à l'inventaire
         farm.addToInventory(cropToHarvest.getType(), cropToHarvest.getYield());
-
-        // Retirer la culture de la liste
         farm.getPlantedCrops().removeIf(crop -> crop.getPosition().equals(cropToHarvest.getPosition()));
 
-        // Réinitialiser la cellule
         cellButton.setText("");
-        cellButton.getStyleClass().removeAll("crop-cell", "seed-stage", "growing-stage", "ready-stage", "harvestable");
+        cellButton.getStyleClass().clear();
         cellButton.getStyleClass().add("empty-cell");
-
-        // Mise à jour de l'affichage
+        Tooltip.uninstall(cellButton, null);
         updateInventoryDisplay();
         selectedItemLabel.setText("Récolté: " + cropToHarvest.getType() + " x" + cropToHarvest.getYield());
-        LOGGER.info("Culture " + cropToHarvest.getType() + " récoltée avec " + cropToHarvest.getYield() + " unités");
     }
 
     private void placeAnimal(String animalType, int row, int col, Button cellButton) {
@@ -781,8 +759,7 @@ public class FieldController {
         }
 
         cellButton.setText(displayText);
-        cellButton.getStyleClass().removeAll("empty-cell", "crop-cell", "animal-cell");
-        cellButton.getStyleClass().add(baseStyle);
+        cellButton.getStyleClass().removeAll("hungry-animal", "starving-animal");        cellButton.getStyleClass().add(baseStyle);
 
         if (stageStyle != null && !stageStyle.isEmpty()) {
             cellButton.getStyleClass().add(stageStyle);
@@ -939,12 +916,14 @@ public class FieldController {
         Button cellButton = getCellButton(row, col);
         if (cellButton != null) {
             cellButton.setText("");
-            cellButton.getStyleClass().removeAll("animal-cell", "baby-stage", "young-stage", "adult-stage", "hungry-animal");
+            cellButton.getStyleClass().removeAll("animal-cell", "crop-cell",
+                    "baby-stage", "young-stage", "mature-stage",
+                    "hungry-animal", "starving-animal",
+                    "seed-stage", "growing-stage", "ready-stage");
             cellButton.getStyleClass().add("empty-cell");
             Tooltip.uninstall(cellButton, null);
         }
     }
-
     @FXML
     private Label notificationLabel;
 

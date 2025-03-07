@@ -135,3 +135,115 @@
     -fx-border-style: dashed;
     -fx-effect: dropshadow(three-pass-box, red, 10, 0.5, 0, 0);
 }
+/* Styles de base pour les cellules */
+.empty-cell {
+    -fx-background-color: #8B4513;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+    -fx-border-color: #654321;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.crop-cell {
+    -fx-background-color: #556B2F;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+    -fx-border-color: #2E3B1B;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.animal-cell {
+    -fx-background-color: #337733;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+    -fx-border-color: #225522;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-transition: border-color 0.5s, border-width 0.5s;
+}
+
+/* Styles pour les étapes de croissance des cultures */
+.seed-stage {
+    -fx-background-color: #D2B48C;
+}
+
+.growing-stage {
+    -fx-background-color: #668636;
+}
+
+.ready-stage {
+    -fx-background-color: #9ACD32;
+    -fx-effect: innershadow(three-pass-box, gold, 10, 0.7, 0, 0);
+    -fx-font-weight: bold;
+}
+
+/* Styles pour les stades de développement des animaux */
+.baby-stage {
+    -fx-background-color: #99CC99;
+}
+
+.young-stage {
+    -fx-background-color: #77AA77;
+}
+
+.mature-stage {
+    -fx-background-color: #448844;
+}
+
+/* Styles pour les animaux affamés ou mourants */
+.hungry-animal {
+    -fx-border-color: orange;
+    -fx-border-width: 3;
+    -fx-effect: dropshadow(three-pass-box, orange, 5, 0.5, 0, 0);
+}
+
+.starving-animal {
+    -fx-border-color: red;
+    -fx-border-width: 4;
+    -fx-effect: dropshadow(three-pass-box, red, 8, 0.7, 0, 0);
+    -fx-background-color: derive(#337733, -15%);
+}
+
+/* Animation pour l'état d'urgence */
+@keyframes pulse {
+    0% { -fx-border-color: red; }
+    50% { -fx-border-color: darkred; }
+    100% { -fx-border-color: red; }
+}
+
+.starving-animal {
+    -fx-animation: pulse 1s infinite;
+}
+
+/* Style pour le survol des cellules */
+.animal-cell:hover, .crop-cell:hover, .empty-cell:hover {
+    -fx-effect: dropshadow(three-pass-box, white, 10, 0.5, 0, 0);
+    -fx-cursor: hand;
+}
+
+/* Modifications importantes pour gérer les transitions d'état */
+.animal-cell:not(.hungry-animal):not(.starving-animal) {
+    -fx-border-color: #225522;
+    -fx-border-width: 1;
+    -fx-effect: none;
+}
+
+/* S'assurer que les états sont réinitialisés lorsque les classes sont supprimées */
+Button:not(.animal-cell) {
+    -fx-border-color: inherit;
+    -fx-border-width: inherit;
+    -fx-effect: inherit;
+}
+
+/* Pour les boutons d'action */
+.action-button {
+    -fx-background-radius: 5;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 5 10;
+}
