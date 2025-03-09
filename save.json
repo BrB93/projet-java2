@@ -1,12 +1,74 @@
 {
   "name": "Ma ferme",
   "size": 5,
-  "money": 990,
+  "money": 724,
   "inventory": {
-    "ble": 1
+    "poule": 0,
+    "lait": 8,
+    "mouton": 0,
+    "carotte": 40,
+    "oeuf": 22,
+    "laine": 3,
+    "vache": 0,
+    "ble": 57,
+    "mais": 51
   },
-  "resources": {},
-  "plantedCrops": [],
+  "resources": {
+    "lait": 160,
+    "laine": 150
+  },
+  "financeManager": {
+    "transactions": [
+      {
+        "date": "Mar 7, 2025, 4:30:10 PM",
+        "description": "Revenu",
+        "amount": 152,
+        "type": "INCOME"
+      }
+    ]
+  },
+  "plantedCrops": [
+    {
+      "type": "mais",
+      "price": 15,
+      "growthTime": 10,
+      "yield": 25,
+      "position": "0,4",
+      "growthStage": 2,
+      "plantedTime": 1741361383449,
+      "timeToNextStage": 5000
+    },
+    {
+      "type": "mais",
+      "price": 15,
+      "growthTime": 10,
+      "yield": 25,
+      "position": "0,3",
+      "growthStage": 2,
+      "plantedTime": 1741361384456,
+      "timeToNextStage": 5000
+    },
+    {
+      "type": "carotte",
+      "price": 5,
+      "growthTime": 10,
+      "yield": 15,
+      "position": "1,4",
+      "growthStage": 2,
+      "plantedTime": 1741361386489,
+      "timeToNextStage": 5000
+    },
+    {
+      "type": "carotte",
+      "price": 5,
+      "growthTime": 10,
+      "yield": 15,
+      "position": "1,3",
+      "growthStage": 2,
+      "plantedTime": 1741361386798,
+      "timeToNextStage": 5000
+    }
+  ],
   "animals": [],
-  "elapsedTime": 9000
+  "elapsedTime": 349000
 }
